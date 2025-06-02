@@ -1,19 +1,27 @@
 const express = require('express');
 const app = express();
-const PORT = 3000;
 
-// Middleware để parse JSON
+const PORT = 3001;
+const cors = require('cors');
+const db = require('./models');
 app.use(express.json());
-
-// Import user routes
+app.use(cors());
 const userRoutes = require('./routes/user.route');
+const categoryRoutes = require('./routes/category.route');
+const shopRoutes = require('./routes/shop.route');
+const serviceRoutes = require('./routes/service.route');
 app.use('/api/users', userRoutes);
-
-// Route mặc định
+app.use('/api/categories', categoryRoutes);
+app.use('/api/shops', shopRoutes);
+app.use('/api/services', serviceRoutes);
 app.get('/', (req, res) => {
   res.send('Backend Node.js với Express');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server đang chạy tại http://localhost:${PORT}`);
+db.sequelize.sync({ alter: true }) .then(() => {
+  app.listen(PORT, () => {
+    console.log(`✅ Server đang chạy tại http://localhost:${PORT}`);
+  });
+}).catch(err => {
+  console.error('❌ Lỗi kết nối DB:', err);
 });
