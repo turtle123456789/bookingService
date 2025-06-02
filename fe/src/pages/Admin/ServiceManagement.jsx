@@ -1,80 +1,66 @@
-import { useState, useMemo } from "react";
-
-const mockCategories = [
-  { id: 1, name: "Làm đẹp" },
-  { id: 2, name: "Spa & Massage" },
-  { id: 3, name: "Cắt tóc" },
-];
-
-const mockStores = [
-  { id: 1, name: "Cửa hàng A" },
-  { id: 2, name: "Cửa hàng B" },
-  { id: 3, name: "Cửa hàng C" },
-];
-
-const mockServices = [
-  {
-    id: 1,
-    name: "Dịch vụ chăm sóc da mặt",
-    image: "https://via.placeholder.com/80x50?text=Da+mặt",
-    price: 200000,
-    shortDesc: "Chăm sóc da mặt chuyên nghiệp",
-    categoryId: 1,
-    storeId: 1,
-    bookingStatus: "Mở đặt lịch",
-    activeStatus: "Hoạt động",
-  },
-  {
-    id: 2,
-    name: "Massage Thái",
-    image: "https://via.placeholder.com/80x50?text=Massage+Thái",
-    price: 300000,
-    shortDesc: "Massage Thái giúp thư giãn",
-    categoryId: 2,
-    storeId: 2,
-    bookingStatus: "Đóng đặt lịch",
-    activeStatus: "Ngưng hoạt động",
-  },
-  {
-    id: 3,
-    name: "Cắt tóc nam",
-    image: "https://via.placeholder.com/80x50?text=Cắt+tóc+nam",
-    price: 150000,
-    shortDesc: "Cắt tóc nam thời thượng",
-    categoryId: 3,
-    storeId: 3,
-    bookingStatus: "Mở đặt lịch",
-    activeStatus: "Hoạt động",
-  },
-  // ... thêm nhiều dịch vụ để demo phân trang
-];
+import React, { useState, useMemo, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchShopsThunk } from "../../redux/shopSlice";
+import { getCategories } from "../../redux/categorySlice";
+import CreateServiceModal from "./CreateServiceModal";
+import { createServiceThunk, resetServiceState, fetchServicesThunk } from "../../redux/serviceSlice";
 
 const PAGE_SIZE = 10;
 
 export default function ServiceManagement() {
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedStore, setSelectedStore] = useState("");
+  const [selectedShop, setSelectedShop] = useState("");
+  const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [page, setPage] = useState(1);
+  const [services, setServices] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Lọc theo tìm kiếm và bộ lọc
+  const { shopList } = useSelector((state) => state.shops);
+  const { list } = useSelector((state) => state.category);
+  const allSubCategories = list.flatMap((cat) => cat.subCategories || []);
+
+  const { createdService, loading, error, services: servicesFromStore } = useSelector((state) => state.service);
+  console.log('services :>> ', services);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchShopsThunk({ isActivated: true }));
+    dispatch(getCategories());
+    dispatch(fetchServicesThunk()); // <-- Gọi lấy dịch vụ lúc mount
+  }, [dispatch]);
+
+  // Cập nhật lại services local khi services trong Redux store thay đổi
+  useEffect(() => {
+    if (servicesFromStore) {
+      setServices(servicesFromStore);
+    }
+  }, [servicesFromStore]);
+
+  // Thêm dịch vụ mới tạo vào danh sách
+  useEffect(() => {
+    if (createdService) {
+      setServices((prev) => [createdService, ...prev]);
+      setPage(1);
+      setIsModalOpen(false);
+      dispatch(fetchServicesThunk());
+    }
+  }, [createdService, dispatch]);
+
   const filteredServices = useMemo(() => {
-    return mockServices.filter((s) => {
+    return services?.filter((s) => {
       const matchSearch =
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.shortDesc.toLowerCase().includes(search.toLowerCase());
-      const matchCategory = selectedCategory
-        ? s.categoryId === Number(selectedCategory)
+        s?.name?.toLowerCase().includes(search?.toLowerCase()) ||
+        (s?.description && s?.description?.toLowerCase().includes(search?.toLowerCase()));
+      const matchShop = selectedShop ? s?.shopId === Number(selectedShop) : true;
+      const matchSubCategory = selectedSubCategory
+        ? s?.subCategoryId === Number(selectedSubCategory)
         : true;
-      const matchStore = selectedStore
-        ? s.storeId === Number(selectedStore)
-        : true;
-      return matchSearch && matchCategory && matchStore;
+      return matchSearch && matchShop && matchSubCategory;
     });
-  }, [search, selectedCategory, selectedStore]);
+  }, [search, selectedShop, selectedSubCategory, services]);
 
-  const totalPages = Math.ceil(filteredServices.length / PAGE_SIZE);
-  const paginatedServices = filteredServices.slice(
+  const totalPages = Math.ceil(filteredServices?.length / PAGE_SIZE);
+  const paginatedServices = filteredServices?.slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE
   );
@@ -84,7 +70,11 @@ export default function ServiceManagement() {
   };
 
   const handleDelete = (id) => {
-    alert("Xóa dịch vụ id: " + id);
+    setServices((prev) => prev.filter((s) => s?.id !== id));
+  };
+
+  const handleCreate = (newService) => {
+    dispatch(createServiceThunk(newService));
   };
 
   return (
@@ -94,7 +84,7 @@ export default function ServiceManagement() {
       <div className="flex flex-wrap items-center gap-4 mb-4">
         <input
           type="text"
-          placeholder="Tìm kiếm theo tên dịch vụ hoặc mô tả..."
+          placeholder="Tìm kiếm theo tên hoặc mô tả dịch vụ..."
           className="p-3 border rounded flex-grow max-w-md"
           value={search}
           onChange={(e) => {
@@ -105,93 +95,101 @@ export default function ServiceManagement() {
 
         <select
           className="p-3 border rounded max-w-xs"
-          value={selectedCategory}
+          value={selectedShop}
           onChange={(e) => {
-            setSelectedCategory(e.target.value);
+            setSelectedShop(e.target.value);
             setPage(1);
           }}
         >
-          <option value="">-- Chọn danh mục --</option>
-          {mockCategories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
+          <option value="">-- Chọn cửa hàng --</option>
+          {shopList.map((shop) => (
+            <option key={shop.id} value={shop.id}>
+              {shop.username}
             </option>
           ))}
         </select>
 
         <select
           className="p-3 border rounded max-w-xs"
-          value={selectedStore}
+          value={selectedSubCategory}
           onChange={(e) => {
-            setSelectedStore(e.target.value);
+            setSelectedSubCategory(e.target.value);
             setPage(1);
           }}
         >
-          <option value="">-- Chọn cửa hàng --</option>
-          {mockStores.map((store) => (
-            <option key={store.id} value={store.id}>
-              {store.name}
+          <option value="">-- Chọn danh mục con --</option>
+          {allSubCategories?.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
             </option>
           ))}
         </select>
+
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+        >
+          Thêm dịch vụ
+        </button>
       </div>
 
       <div className="overflow-x-auto bg-white shadow rounded-lg">
-        <table className="min-w-[900px] w-full text-left text-sm">
+        <table className="min-w-[800px] w-full text-left text-sm">
           <thead className="bg-gray-100">
             <tr>
               <th className="px-6 py-3">Tên dịch vụ</th>
               <th className="px-6 py-3">Hình ảnh</th>
-              <th className="px-6 py-3">Giá cơ bản</th>
-              <th className="px-6 py-3">Mô tả ngắn</th>
-              <th className="px-6 py-3">Danh mục</th>
               <th className="px-6 py-3">Cửa hàng</th>
-              <th className="px-6 py-3">Trạng thái đặt lịch</th>
-              <th className="px-6 py-3">Trạng thái hoạt động</th>
+              <th className="px-6 py-3">Danh mục</th>
+              <th className="px-6 py-3">Mô tả</th>
               <th className="px-6 py-3">Hành động</th>
             </tr>
           </thead>
           <tbody>
-            {paginatedServices.length === 0 && (
+            {paginatedServices?.length === 0 && (
               <tr>
-                <td colSpan="9" className="text-center py-6 text-gray-500">
+                <td colSpan="6" className="text-center py-6 text-gray-500">
                   Không có dịch vụ phù hợp
                 </td>
               </tr>
             )}
 
-            {paginatedServices.map((s) => (
-              <tr key={s.id} className="border-b">
-                <td className="px-6 py-3">{s.name}</td>
+            {paginatedServices?.map((s) => (
+              <tr key={s?.id} className="border-b">
+                <td className="px-6 py-3">{s?.name}</td>
                 <td className="px-6 py-3">
-                  <img
-                    src={s.image}
-                    alt={s.name}
-                    className="w-20 h-12 object-cover rounded"
-                  />
-                </td>
-                <td className="px-6 py-3">{s.price.toLocaleString()}₫</td>
-                <td className="px-6 py-3 max-w-xs truncate" title={s.shortDesc}>
-                  {s.shortDesc}
-                </td>
-                <td className="px-6 py-3">
-                  {mockCategories.find((c) => c.id === s.categoryId)?.name ||
-                    "N/A"}
+                  {s?.image ? (
+                    <img
+                      src={s?.image}
+                      alt={s?.name}
+                      className="w-20 h-12 object-cover rounded"
+                    />
+                  ) : (
+                    <span>Không có ảnh</span>
+                  )}
                 </td>
                 <td className="px-6 py-3">
-                  {mockStores.find((st) => st.id === s.storeId)?.name || "N/A"}
+                   {s?.creator?.username}
                 </td>
-                <td className="px-6 py-3">{s.bookingStatus}</td>
-                <td className="px-6 py-3">{s.activeStatus}</td>
+                <td className="px-6 py-3">
+                  {allSubCategories?.find((cat) => cat.id === s?.subCategoryId)?.name || "N/A"}
+                </td>
+                <td
+                  className="px-6 py-3 max-w-xs truncate"
+                  title={s?.description}
+                  dangerouslySetInnerHTML={{
+                    __html: s?.description || '<span class="text-gray-400 italic">Không có mô tả</span>',
+                  }}
+                ></td>
                 <td className="px-6 py-3 space-x-3">
                   <button
-                    onClick={() => handleEdit(s.id)}
+                    onClick={() => handleEdit(s?.id)}
                     className="text-blue-600 hover:underline"
                   >
                     Sửa
                   </button>
                   <button
-                    onClick={() => handleDelete(s.id)}
+                    onClick={() => handleDelete(s?.id)}
                     className="text-red-600 hover:underline"
                   >
                     Xóa
@@ -203,7 +201,6 @@ export default function ServiceManagement() {
         </table>
       </div>
 
-      {/* Phân trang */}
       <div className="flex justify-end mt-4 gap-3">
         <button
           className="px-4 py-1 bg-gray-200 rounded disabled:opacity-50"
@@ -223,6 +220,15 @@ export default function ServiceManagement() {
           Sau
         </button>
       </div>
+
+      <CreateServiceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCreate={handleCreate}
+        subCategoryOptions={allSubCategories}
+        loading={loading}
+        error={error}
+      />
     </div>
   );
 }

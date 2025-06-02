@@ -61,7 +61,7 @@ const routes = [
     children: [
       {
         index: true,
-        path: "",
+        path: "/admin/report",
         element: <AdminDashboard />,
       },
       {

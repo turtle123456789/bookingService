@@ -13,10 +13,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    shopId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
     subCategoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -26,8 +22,18 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
     },
     description: {
-      type: DataTypes.TEXT('long'), // nội dung từ CKEditor
+      type: DataTypes.TEXT('long'),
       allowNull: true,
+    },
+    price: {
+      type: DataTypes.FLOAT,
+      allowNull: false, 
+      defaultValue: 0,
+    },
+    deposit: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      defaultValue: 0,
     },
   });
 

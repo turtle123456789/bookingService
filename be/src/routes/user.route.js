@@ -64,7 +64,8 @@ router.post('/register', upload.single('businessLicenseFile'), async (req, res) 
       email,
       phonenumber,
       password: hashedPassword,
-      role
+      role,
+      status: true
     };
 
     if (role === 'customer') {
@@ -120,6 +121,16 @@ router.post('/refresh-token', (req, res) => {
     res.json({ accessToken: newAccessToken });
   });
 });
+router.get('/', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: { exclude: ['password'] } // không trả về password
+    });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
@@ -136,4 +147,125 @@ router.get('/profile', authenticateToken, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+router.patch('/:id/status', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  const { id } = req.params;
+  const { status, isActive } = req.body;
+
+  try {
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ error: 'Người dùng không tồn tại' });
+
+    // Cập nhật linh hoạt theo body gửi lên
+    if (typeof status !== 'undefined') {
+      user.status = status;
+    }
+
+    if (typeof isActive !== 'undefined') {
+      user.isActivated = isActive;
+    }
+
+    await user.save();
+
+    res.json({ 
+      message: 'Cập nhật thành công',
+      user: {
+        id: user.id,
+        status: user.status,
+        isActivated: user.isActivated
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.patch(
+  '/me',
+  authenticateToken,
+  upload.single('avatar'),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { username, phonenumber, email } = req.body;
+
+      const user = await User.findByPk(userId);
+      if (!user) return res.status(404).json({ error: 'Người dùng không tồn tại' });
+
+      // Kiểm tra email nếu thay đổi
+      if (email && email !== user.email) {
+        const existingEmail = await User.findOne({ where: { email } });
+        if (existingEmail) return res.status(400).json({ error: 'Email đã được sử dụng' });
+        user.email = email;
+      }
+
+      // Kiểm tra số điện thoại nếu thay đổi
+      if (phonenumber && phonenumber !== user.phonenumber) {
+        const existingPhone = await User.findOne({ where: { phonenumber } });
+        if (existingPhone) return res.status(400).json({ error: 'Số điện thoại đã được sử dụng' });
+        user.phonenumber = phonenumber;
+      }
+
+      if (username) user.username = username;
+
+      // Nếu có file avatar mới thì upload lên Cloudinary
+      if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'avatars',
+          resource_type: 'image',
+        });
+
+        fs.unlinkSync(req.file.path); // Xoá file cục bộ sau khi upload
+
+        user.avatar = result.secure_url;
+      }
+
+      await user.save();
+
+      res.json({
+        message: 'Cập nhật thông tin thành công',
+        user: {
+          id: user.id,
+          email: user.email,
+          phonenumber: user.phonenumber,
+          username: user.username,
+          avatar: user.avatar,
+        },
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+router.patch(
+  '/me/password',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { oldPassword, newPassword } = req.body;
+
+      if (!oldPassword || !newPassword) {
+        return res.status(400).json({ error: 'Cần cung cấp mật khẩu cũ và mật khẩu mới' });
+      }
+
+      const user = await User.findByPk(userId);
+      if (!user) return res.status(404).json({ error: 'Người dùng không tồn tại' });
+
+      // Kiểm tra mật khẩu cũ có đúng không
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) return res.status(400).json({ error: 'Mật khẩu cũ không đúng' });
+
+      // Hash mật khẩu mới và lưu
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedPassword;
+
+      await user.save();
+
+      res.json({ message: 'Đổi mật khẩu thành công' });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
 module.exports = router;

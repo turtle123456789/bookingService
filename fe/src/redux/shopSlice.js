@@ -4,15 +4,16 @@ import { getPublicShops } from '../services/shopApi';
 // Async thunk để gọi API lấy danh sách các shop (public)
 export const fetchShopsThunk = createAsyncThunk(
   'shop/fetchShops',
-  async (_, thunkAPI) => {
+  async (params, thunkAPI) => {
     try {
-      const response = await getPublicShops();
+      const response = await getPublicShops(params); // truyền params vào API
       return response.shops;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data || error.message);
     }
   }
 );
+
 
 const shopSlice = createSlice({
   name: 'shop',

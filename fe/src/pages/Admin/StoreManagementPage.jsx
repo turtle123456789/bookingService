@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShopsThunk } from "../../redux/shopSlice";
-import axios from "axios";
+import { updateUserStatusThunk } from "../../redux/userSlice";
+import { toast } from "react-toastify";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -13,7 +14,8 @@ export default function StoreManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    dispatch(fetchShopsThunk());
+    dispatch(fetchShopsThunk({ isActivated: true }));
+
   }, [dispatch]);
 
   const filtered = shopList.filter((s) =>
@@ -27,22 +29,16 @@ export default function StoreManagementPage() {
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
 
-  const toggleStatus = async (id) => {
-    try {
-      const res = await axios.patch(`/api/stores/${id}/toggle-status`);
-      const updatedStore = res.data;
+const toggleStatus = async (userId, status) => {
+  try {
+    await dispatch(updateUserStatusThunk({userId, status: status })).unwrap();
+    dispatch(fetchShopsThunk({ isActivated: true }));
+    toast.success(status ? "Đã mở khóa cửa hàng." : "Đã khóa cửa hàng.");
+  } catch (err) {
+    toast.error("Có lỗi xảy ra khi cập nhật trạng thái.");
+  }
+};
 
-      // Cập nhật tạm trong local state (hoặc dispatch thêm một thunk nếu cần đồng bộ hóa Redux)
-      const updated = shopList.map((s) =>
-        s.id === id ? { ...s, status: updatedStore.status } : s
-      );
-
-      // Có thể dispatch lên Redux nếu cần: dispatch(updateShop(updated));
-      // Ở đây dùng tạm setState để phản hồi nhanh
-    } catch (error) {
-      alert("Không thể cập nhật trạng thái cửa hàng.");
-    }
-  };
 
   const viewDetail = (store) => {
     alert(`Chi tiết cửa hàng: ${store?.username}`);
@@ -52,9 +48,6 @@ export default function StoreManagementPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Quản lý cửa hàng</h2>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-          + Thêm cửa hàng
-        </button>
       </div>
 
       <div className="mb-4">
@@ -108,7 +101,18 @@ export default function StoreManagementPage() {
                       className="w-12 h-12 rounded object-cover"
                     />
                   </td>
-                  <td className="px-4 py-3">{store.status}</td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`px-3 py-1 rounded text-white text-xs ${
+                        store.status?
+                          "bg-green-500"
+                          : "bg-yellow-500"
+                      }`}
+                    >
+                      {store.status ? "Hoạt động" : "Khóa"}
+                    </span>
+                  </td>
+
                   <td className="px-4 py-3 space-x-2">
                     <button
                       className="text-blue-600 hover:underline"
@@ -118,9 +122,9 @@ export default function StoreManagementPage() {
                     </button>
                     <button
                       className="text-red-600 hover:underline"
-                      onClick={() => toggleStatus(store.id)}
+                      onClick={() => toggleStatus(store.id,!store.status)}
                     >
-                      {store.status === "Đang hoạt động" ? "Khóa" : "Mở khóa"}
+                      {store.status  ? "Khóa" : "Mở khóa"}
                     </button>
                   </td>
                 </tr>

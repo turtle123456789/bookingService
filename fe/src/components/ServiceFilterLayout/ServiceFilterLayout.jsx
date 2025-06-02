@@ -1,71 +1,73 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MainService from "../MainService/MainService";
 import StoreList from "../StoreList/StoreList";
 import { useLocation } from "react-router-dom";
-const serviceCategories = [
-  {
-    id: "cleaning",
-    name: "Vệ sinh máy lạnh",
-    subServices: [
-      { id: "cleaning_basic", name: "Vệ sinh cơ bản" },
-      { id: "cleaning_advanced", name: "Vệ sinh nâng cao" },
-    ],
-  },
-  {
-    id: "electric_water",
-    name: "Sửa điện nước",
-    subServices: [
-      { id: "electric_repair", name: "Sửa điện" },
-      { id: "water_repair", name: "Sửa nước" },
-    ],
-  },
-  {
-    id: "water_heater",
-    name: "Lắp đặt máy nước nóng",
-    subServices: [],
-  },
-];
+import { useDispatch, useSelector } from "react-redux";
+import { getCategories } from "../../redux/categorySlice";
 
 const ServiceFilterLayout = () => {
   const [keyword, setKeyword] = useState("");
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
   const [ward, setWard] = useState("");
+  const dispatch = useDispatch();
   const [store, setStore] = useState("");
 const [selectedService, setSelectedService] = useState(""); 
   const location = useLocation();
   const isStoreView = location.pathname.includes("store");
-
+  const { list } = useSelector(state => state.category);
+  useEffect(()=>{
+     dispatch(getCategories());
+  },[dispatch])
   return (
     <div className="min-h-screen bg-white">
       <div className="flex max-w-7xl mx-auto mt-4 px-4 gap-4">
         <div className="w-full max-w-xs">
             {!isStoreView && (
                 <>
-                    <h2 className="text-[#26b65d] font-bold mb-2 cursor-pointer" onClick={() => setSelectedService("")}>
-                    Tất cả dịch vụ
+                    <h2
+                      className="text-[#26b65d] font-bold mb-2 cursor-pointer"
+                      onClick={() => setSelectedService("")}
+                    >
+                      Tất cả dịch vụ
                     </h2>
-                    {serviceCategories.map((category) => (
-                    <div key={category.id} className="mb-3">
-                        <p 
-                        className={`font-semibold cursor-pointer ${selectedService === category.id ? 'text-orange-600' : ''}`}
-                        onClick={() => setSelectedService(category.id)}
+                    {list?.map((category) => (
+                      <div key={category.id} className="mb-3">
+                        <div
+                          className={`flex items-center cursor-pointer font-semibold ${
+                            selectedService === category.id ? "text-orange-600" : ""
+                          }`}
+                          onClick={() => setSelectedService(category.id)}
                         >
-                        {category.name}
-                        </p>
-                        <div className="pl-4 mt-1">
-                        {category.subServices.map((sub) => (
-                            <p
-                            key={sub.id}
-                            className={`cursor-pointer text-sm ${selectedService === sub.id ? 'text-orange-500' : ''}`}
-                            onClick={() => setSelectedService(sub.id)}
-                            >
-                            - {sub.name}
-                            </p>
-                        ))}
+                          <img
+                            src={category.image}
+                            alt={category.name}
+                            className="w-5 h-5 object-cover rounded mr-2"
+                          />
+                          {category.name}
                         </div>
-                    </div>
+
+                        <div className="pl-6 mt-1 space-y-1">
+                          {category?.subCategories?.map((sub) => (
+                            <div
+                              key={sub.id}
+                              className={`flex items-center cursor-pointer text-sm ${
+                                selectedService === sub.id ? "text-orange-500" : "text-gray-700"
+                              }`}
+                              onClick={() => setSelectedService(sub.id)}
+                            >
+                              <img
+                                src={sub.subImages}
+                                alt={sub.name}
+                                className="w-4 h-4 object-cover rounded mr-2"
+                              />
+                              {sub.name}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     ))}
+
                 </>
             )}
 

@@ -65,10 +65,10 @@ db.SubCategory.belongsTo(db.Category, {
 //   as: 'user',
 // });
 
-db.Shop.belongsTo(db.User, {
-  foreignKey: 'creatorId',
-  as: 'creator',
-});
+// db.Shop.belongsTo(db.User, {
+//   foreignKey: 'creatorId',
+//   as: 'creator',
+// });
 // db.User.hasOne(db.Shop, {
 //   foreignKey: 'creatorId',
 //   as: 'shop',
@@ -83,16 +83,6 @@ db.User.hasMany(db.Service, {
   as: 'services',
 });
 
-// Service -> Shop
-db.Service.belongsTo(db.Shop, {
-  foreignKey: 'shopId',
-  as: 'shop',
-});
-db.Shop.hasMany(db.Service, {
-  foreignKey: 'shopId',
-  as: 'services',
-});
-
 // Service -> SubCategory
 db.Service.belongsTo(db.SubCategory, {
   foreignKey: 'subCategoryId',
@@ -104,6 +94,4 @@ db.SubCategory.hasMany(db.Service, {
 });
 
 db.sequelize = sequelize;
-db.Sequelize = Sequelize;
-
 module.exports = db;

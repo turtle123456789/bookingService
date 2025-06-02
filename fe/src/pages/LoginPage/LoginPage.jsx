@@ -29,7 +29,7 @@ export default function LoginPage() {
       toast.success("Đăng nhập thành công!");
       navigate("/"); 
     } else {
-      toast.error("Đăng nhập thất bại. Vui lòng kiểm tra lại.");
+      toast.error("Đăng nhập thất bại. Vui lòng kiểm tra email hoặc password.");
     }
   };
 

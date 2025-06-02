@@ -5,6 +5,7 @@ import { FiUserCheck } from "react-icons/fi";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../redux/userSlice";
+import { getCategories } from "../../redux/categorySlice";
 
 const services = [
   "Tư vấn thiết kế",
@@ -28,9 +29,11 @@ const HeaderComponent = () => {
   const { userInfo } = useSelector((state) => state.user);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const dropdownRef = useRef(null); 
+  const { list } = useSelector(state => state.category);
 
   const handleLogout = () => {
     dispatch(logout());
+
     navigate("/");
     setUserDropdownOpen(false);
   };
@@ -44,6 +47,7 @@ const HeaderComponent = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
+     dispatch(getCategories());
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
   return (
@@ -106,7 +110,7 @@ const HeaderComponent = () => {
                     >
                       <div className="py-1 text-gray-700">
                         <Link
-                          to="/admin"
+                          to="/admin/profile"
                           onClick={() => setUserDropdownOpen(false)}
                           className="block px-4 py-2 text-sm hover:bg-green-100"
                         >
@@ -164,15 +168,32 @@ const HeaderComponent = () => {
                   className="absolute left-0 top-full w-56 mt-0 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
                 >
                   <div className="py-1">
-                    {services.map((service) => (
-                      <Link
-                        key={service}
-                        to="/"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-green-100 hover:text-green-900"
-                      >
-                        {service}
-                      </Link>
-                    ))}
+                     {list.map((category) => (
+                        <div key={category.id} className="group px-4 py-2 hover:bg-green-100">
+                           <div className="flex items-center space-x-2 mb-1">
+                            <img
+                              src={category.image}
+                              alt={category.name}
+                              className="w-6 h-6 object-cover rounded"
+                            />
+                            <span className="font-semibold text-gray-800">{category.name}</span>
+                          </div>
+                          {category.subCategories?.length > 0 && (
+                            <ul className="ml-3 space-y-1">
+                              {category.subCategories.map((sub) => (
+                                <li key={sub.id} className="flex items-center space-x-2 hover:bg-slate-300 cursor-pointer p-2 mb-1">
+                                  <img
+                                    src={sub.subImages}
+                                    alt={sub.name}
+                                    className="w-6 h-6 object-cover rounded"
+                                  />
+                                  <span className="text-sm text-gray-700">{sub.name}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ))}
                   </div>
                 </motion.div>
               )}

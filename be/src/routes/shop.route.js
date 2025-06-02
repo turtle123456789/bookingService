@@ -4,9 +4,22 @@ const db = require('../models');
 const User = db.User;
 router.get('/', async (req, res) => {
   try {
+    const { isActivated } = req.query;
+
+    const whereClause = {
+      role: 'shop'
+    };
+
+    // Nếu có query isActivated thì thêm vào where
+    if (isActivated === 'true') {
+      whereClause.isActivated = true;
+    } else if (isActivated === 'false') {
+      whereClause.isActivated = false;
+    }
+
     const shops = await User.findAll({
-      where: { role: 'shop', isActivated: true },
-      attributes: ['id', 'username', 'email', 'phonenumber','isActivated','avatar', 'businessLicenseFile', 'createdAt'],
+      where: whereClause,
+      attributes: ['id', 'username', 'email', 'phonenumber', 'isActivated', 'status', 'avatar', 'businessLicenseFile', 'createdAt', 'isPayment'],
       order: [['createdAt', 'DESC']]
     });
 

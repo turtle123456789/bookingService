@@ -1,18 +1,37 @@
 import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { logout } from "../../redux/userSlice";
 
-const menuItems = [
-  { name: "Trang chủ", path: "" },
-  { name: "Đặt lịch", path: "booking" },
-  { name: "Danh mục", path: "categories" },
-  { name: "Dịch vụ", path: "services" },
-  { name: "Duyệt hồ sơ", path: "approvals" },
-  { name: "Người dùng", path: "users" },
-  { name: "Quản lý cửa hàng", path: "stores" },
-  { name: "Hồ sơ", path: "profile" },
+const fullMenuItems = [
+  { name: "Trang chủ", path: "/", roles: ["admin", "shop", "customer", "guest"] }, // thêm guest cho phòng ngừa
+  { name: "Thống kê", path: "report", roles: ["admin", "shop"] },
+  { name: "Đặt lịch", path: "booking", roles: ["admin", "shop", "customer"] },
+  { name: "Danh mục", path: "categories", roles: ["admin", "shop"] },
+  { name: "Dịch vụ", path: "services", roles: ["admin", "shop"] },
+  { name: "Duyệt hồ sơ", path: "approvals", roles: ["admin"] },
+  { name: "Người dùng", path: "users", roles: ["admin"] },
+  { name: "Quản lý cửa hàng", path: "stores", roles: ["admin"] },
+  { name: "Hồ sơ", path: "profile", roles: ["admin", "shop", "customer"] },
 ];
 
 export default function AdminPage() {
+  const { userInfo } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const role = userInfo?.role || "";
+
+  // Lọc menu phù hợp với role
+  const menuItems = fullMenuItems.filter((item) =>
+    item.roles.includes(role)
+  );
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
@@ -28,13 +47,23 @@ export default function AdminPage() {
               to={item.path}
               className={({ isActive }) =>
                 `block px-4 py-2 rounded transition ${
-                  isActive ? "bg-green-600 font-semibold" : "hover:bg-green-600"
+                  isActive
+                    ? "bg-green-600 font-semibold"
+                    : "hover:bg-green-600"
                 }`
               }
             >
               {item.name}
             </NavLink>
           ))}
+
+          {/* Logout button */}
+          <button
+            onClick={handleLogout}
+            className="block w-full text-left px-4 py-2 rounded hover:bg-green-600 transition"
+          >
+            Đăng xuất
+          </button>
         </nav>
       </aside>
 

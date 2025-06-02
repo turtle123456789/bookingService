@@ -1,6 +1,10 @@
 // src/api/userApi.js
 
 import axiosInstance from "./axiosInstance";
+export const getUsers = async () => {
+  const response = await axiosInstance.get('/users');
+  return response.data;
+};
 
 export const registerUser = async (userData) => {
   try {
@@ -41,4 +45,22 @@ export const getProfile = async () => {
     console.error('Lỗi lấy profile:', error.response?.data || error.message);
     throw error;
   }
+};
+export const updateUserStatus = async (id, payload) => {
+
+  const response = await axiosInstance.patch(`/users/${id}/status`, payload);
+  return response.data;
+};
+
+export const updateProfile = async (formData) => {
+  const response = await axiosInstance.patch('/users/me', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+export const updatePassword = async ({ oldPassword, newPassword }) => {
+  const response = await axiosInstance.patch('/users/me/password', { oldPassword, newPassword });
+  return response.data; 
 };

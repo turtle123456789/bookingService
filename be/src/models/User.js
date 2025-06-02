@@ -31,9 +31,18 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 'customer'
     },
+    status: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false
+    },
     avatar: {
       type: DataTypes.STRING,
       allowNull: true
+    },
+    isPayment: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false, 
     },
     wallet: {
       type: DataTypes.DECIMAL(10, 2),

@@ -1,25 +1,28 @@
-import { useState } from "react";
-
-const mockUsers = Array.from({ length: 42 }).map((_, i) => ({
-  id: i + 1,
-  name: `Người dùng ${i + 1}`,
-  email: `user${i + 1}@gmail.com`,
-  phone: `09${i}56789`,
-  role: i % 2 === 0 ? "Khách hàng" : "Chủ cửa hàng",
-  status: i % 3 === 0 ? "Đang hoạt động" : "Đã khóa",
-}));
-
-const ITEMS_PER_PAGE = 10;
+import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { getUsersThunk } from '../../redux/userSlice';
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState(mockUsers);
-  const [searchTerm, setSearchTerm] = useState("");
+  const dispatch = useDispatch();
+
+  // Lấy users từ redux state
+  const users = useSelector((state) => state.user.usersList || []);
+  const loading = useSelector((state) => state.user.loading);
+  const error = useSelector((state) => state.user.error);
+
+  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
+  useEffect(() => {
+    dispatch(getUsersThunk());
+  }, [dispatch]);
+
+  // Filter & phân trang
   const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    user.username?.toLowerCase().includes(searchTerm?.toLowerCase())
   );
 
+  const ITEMS_PER_PAGE = 10;
   const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
   const currentUsers = filteredUsers.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -27,20 +30,20 @@ export default function UserManagementPage() {
   );
 
   const handleLock = (id) => {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === id ? { ...u, status: "Đã khóa" } : u
-      )
-    );
+    // Ở đây bạn có thể dispatch action update status nếu có
+    alert(`Bạn muốn khóa tài khoản ID ${id}? Chức năng cập nhật chưa được cài đặt.`);
   };
 
   const handleView = (user) => {
-    alert(`Chi tiết: ${user.name}`);
+    alert(`Chi tiết: ${user.username}`);
   };
 
   return (
     <div className="p-6">
       <h2 className="text-2xl font-semibold mb-4">Quản lý người dùng</h2>
+
+      {/* Hiển thị loading hoặc error */}
+      {loading && <p>Đang tải danh sách người dùng...</p>}
 
       {/* Search */}
       <div className="mb-4">
@@ -70,15 +73,20 @@ export default function UserManagementPage() {
             </tr>
           </thead>
           <tbody>
+            {currentUsers.length === 0 && (
+              <tr>
+                <td colSpan={6} className="text-center py-4">
+                  Không có người dùng nào
+                </td>
+              </tr>
+            )}
             {currentUsers.map((user) => (
               <tr key={user.id} className="border-b">
-                <td className="px-4 py-3">{user.name}</td>
+                <td className="px-4 py-3">{user.username}</td>
                 <td className="px-4 py-3">{user.email}</td>
-                <td className="px-4 py-3">{user.phone}</td>
-                <td className="px-4 py-3">{user.role}</td>
-                <td className="px-4 py-3 font-medium">
-                  {user.status}
-                </td>
+                <td className="px-4 py-3">{user.phonenumber || '-'}</td>
+                <td className="px-4 py-3">{user.role || '-'}</td>
+                <td className="px-4 py-3 font-medium">{user.status ? "Hoạt động" : "Bị khóa"}</td>
                 <td className="px-4 py-3 space-x-2">
                   <button
                     onClick={() => handleView(user)}
@@ -86,13 +94,27 @@ export default function UserManagementPage() {
                   >
                     Xem chi tiết
                   </button>
-                  {user.status !== "Đã khóa" && (
-                    <button
-                      onClick={() => handleLock(user.id)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Khóa tài khoản
-                    </button>
+                  {user.role !== 'admin' && 
+                  (
+                    <>
+                      {user.status ?  (
+                        <button
+                          onClick={() => handleLock(user.id)}
+                          className="text-red-600 hover:underline"
+                        >
+                          Khóa tài khoản
+                        </button>
+                      ):
+                      (
+                        <button
+                          onClick={() => handleLock(user.id)}
+                          className="text-green-600 hover:underline"
+                        >
+                          Mở khóa
+                        </button>
+                      )}
+                    </>
+
                   )}
                 </td>
               </tr>
@@ -104,9 +126,7 @@ export default function UserManagementPage() {
       {/* Pagination */}
       <div className="flex justify-end mt-4 space-x-2">
         <button
-          onClick={() =>
-            setCurrentPage((prev) => Math.max(prev - 1, 1))
-          }
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
           disabled={currentPage === 1}
         >
@@ -116,11 +136,7 @@ export default function UserManagementPage() {
           {currentPage} / {totalPages}
         </span>
         <button
-          onClick={() =>
-            setCurrentPage((prev) =>
-              Math.min(prev + 1, totalPages)
-            )
-          }
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
           className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
           disabled={currentPage === totalPages}
         >
