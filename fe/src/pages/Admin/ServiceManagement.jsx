@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchShopsThunk } from "../../redux/shopSlice";
 import { getCategories } from "../../redux/categorySlice";
 import CreateServiceModal from "./CreateServiceModal";
-import { createServiceThunk, resetServiceState, fetchServicesThunk } from "../../redux/serviceSlice";
+import { createServiceThunk, fetchServicesThunk } from "../../redux/serviceSlice";
 
 const PAGE_SIZE = 10;
 
@@ -84,7 +84,7 @@ export default function ServiceManagement() {
       <div className="flex flex-wrap items-center gap-4 mb-4">
         <input
           type="text"
-          placeholder="Tìm kiếm theo tên hoặc mô tả dịch vụ..."
+          placeholder="Tìm kiếm theo tên ..."
           className="p-3 border rounded flex-grow max-w-md"
           value={search}
           onChange={(e) => {
@@ -141,7 +141,6 @@ export default function ServiceManagement() {
               <th className="px-6 py-3">Hình ảnh</th>
               <th className="px-6 py-3">Cửa hàng</th>
               <th className="px-6 py-3">Danh mục</th>
-              <th className="px-6 py-3">Mô tả</th>
               <th className="px-6 py-3">Hành động</th>
             </tr>
           </thead>
@@ -174,13 +173,6 @@ export default function ServiceManagement() {
                 <td className="px-6 py-3">
                   {allSubCategories?.find((cat) => cat.id === s?.subCategoryId)?.name || "N/A"}
                 </td>
-                <td
-                  className="px-6 py-3 max-w-xs truncate"
-                  title={s?.description}
-                  dangerouslySetInnerHTML={{
-                    __html: s?.description || '<span class="text-gray-400 italic">Không có mô tả</span>',
-                  }}
-                ></td>
                 <td className="px-6 py-3 space-x-3">
                   <button
                     onClick={() => handleEdit(s?.id)}

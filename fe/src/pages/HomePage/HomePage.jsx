@@ -1,9 +1,21 @@
 import React from 'react'
 import { bg1, bg2, bg3, bg4, bg5, bg6, category1 } from '../../units/importImg'
 import { ServiceFeatures, ServiceSteps, SlideService } from '../../components'
+import { useSelector } from 'react-redux';
 
 const HomePage = () => {
-
+  const { list } = useSelector(state => state.category);
+  const MAX_ITEMS = 6;
+  const actualList = list || [];
+  const renderList = [
+    ...actualList.slice(0, MAX_ITEMS),
+    ...Array.from({ length: MAX_ITEMS - actualList.length }, (_, index) => ({
+      id: `fake-${index}`,
+      name: 'Danh mục đang cập nhật',
+      image: category1,
+      isFake: true,
+    })),
+  ];
   return (
     <div >
       <div className='mx-auto container'>
@@ -26,43 +38,18 @@ const HomePage = () => {
         <div className='my-12'>
           <h1 className='text-xl font-bold'>Danh Mục Nổi Bật Trong Tháng</h1>
           <br />
-          <div className='flex gap-3 justify-between '>
-            <div className='cursor-pointer border border-[#bfbfbf] hover:border-[#ff6f3c] p-3 rounded-lg text-center max-w-[250px]'>
+          <div className='flex ga p-3 justify-between '>
+            {renderList.map((item, index) => (
+              <div
+                key={item.id || index}
+                className='cursor-pointer border border-[#bfbfbf] hover:border-[#ff6f3c] p-3 rounded-lg text-center max-w-[250px]'
+              >
                 <div>
-                  <img src={category1} alt="" />
+                  <img src={item.image} alt={item.name} className='min-w-[224px] min-h-[217px]'/>
                 </div>
-                <p className='mt-3'>Làm đẹp</p>
-            </div>
-            <div className='cursor-pointer border border-[#bfbfbf] hover:border-[#ff6f3c] p-3 rounded-lg text-center max-w-[250px]'>
-                <div>
-                  <img src={category1} alt="" />
-                </div>
-                <p className='mt-3'>Làm đẹp</p>
-            </div>
-            <div className='cursor-pointer border border-[#bfbfbf] hover:border-[#ff6f3c] p-3 rounded-lg text-center max-w-[250px]'>
-                <div>
-                  <img src={category1} alt="" />
-                </div>
-                <p className='mt-3'>Làm đẹp</p>
-            </div>
-            <div className='cursor-pointer border border-[#bfbfbf] hover:border-[#ff6f3c] p-3 rounded-lg text-center max-w-[250px]'>
-                <div>
-                  <img src={category1} alt="" />
-                </div>
-                <p className='mt-3'>Làm đẹp</p>
-            </div>
-            <div className='cursor-pointer border border-[#bfbfbf] hover:border-[#ff6f3c] p-3 rounded-lg text-center max-w-[250px]'>
-                <div>
-                  <img src={category1} alt="" />
-                </div>
-                <p className='mt-3'>Làm đẹp</p>
-            </div>
-            <div className='cursor-pointer border border-[#bfbfbf] hover:border-[#ff6f3c] p-3 rounded-lg text-center max-w-[250px]'>
-                <div>
-                  <img src={category1} alt="" />
-                </div>
-                <p className='mt-3'>Làm đẹp</p>
-            </div>
+                <p className='mt-3'>{item.name}</p>
+              </div>
+            ))}
           </div>
         </div>
         <div className='my-12'>

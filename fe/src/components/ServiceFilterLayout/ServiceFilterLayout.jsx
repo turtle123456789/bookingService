@@ -4,6 +4,7 @@ import StoreList from "../StoreList/StoreList";
 import { useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getCategories } from "../../redux/categorySlice";
+import { fetchShopsThunk } from "../../redux/shopSlice";
 
 const ServiceFilterLayout = () => {
   const [keyword, setKeyword] = useState("");
@@ -12,12 +13,15 @@ const ServiceFilterLayout = () => {
   const [ward, setWard] = useState("");
   const dispatch = useDispatch();
   const [store, setStore] = useState("");
-const [selectedService, setSelectedService] = useState(""); 
+  const [selectedService, setSelectedService] = useState(""); 
   const location = useLocation();
   const isStoreView = location.pathname.includes("store");
   const { list } = useSelector(state => state.category);
+  const { shopList } = useSelector(state => state.shops);
+
   useEffect(()=>{
      dispatch(getCategories());
+    dispatch(fetchShopsThunk({ isActivated: true }));
   },[dispatch])
   return (
     <div className="min-h-screen bg-white">
@@ -147,16 +151,21 @@ const [selectedService, setSelectedService] = useState("");
               onChange={(e) => setKeyword(e.target.value)}
               className="flex-1 border rounded px-3 py-2"
             />
-            <select
-              className="border rounded px-3 py-2 min-w-[200px]"
-              value={store}
-              onChange={(e) => setStore(e.target.value)}
-            >
-              <option value="">Chọn cửa hàng</option>
-              <option value="Barber Legend">Barber Legend</option>
-              <option value="Boy Barber Shop CN 1">Boy Barber Shop CN 1</option>
-              <option value="Mr. Cut HN">Mr. Cut HN</option>
-            </select>
+            {!isStoreView && (
+              <select
+                className="border rounded px-3 py-2 min-w-[200px]"
+                value={store}
+                onChange={(e) => setStore(e.target.value)}
+              >
+                <option value="">Chọn cửa hàng</option>
+                {shopList?.map((shop)=>(
+                  <>
+                  <option value={shop.username}>{shop.username}</option>
+                  </>
+                ))}
+              </select>
+
+            )}
           </div>
 
             {isStoreView ? (

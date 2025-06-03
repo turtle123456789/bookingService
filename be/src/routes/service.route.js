@@ -14,13 +14,20 @@ router.post(
   async (req, res) => {
     try {
       const user = req.user;
-      const { name, subCategoryId, description, price, deposit } = req.body;
+      const {
+        name,
+        subCategoryId,
+        description,
+        price,
+        deposit,
+        workingHours,
+        coupons // ✅ Lấy thêm coupons từ body
+      } = req.body;
 
       if (!name || !subCategoryId) {
         return res.status(400).json({ message: 'Thiếu tên dịch vụ hoặc phân loại' });
       }
 
-      // Có thể kiểm tra thêm price và deposit là số hợp lệ
       if (price === undefined || isNaN(parseFloat(price))) {
         return res.status(400).json({ message: 'Giá tiền không hợp lệ' });
       }
@@ -38,6 +45,22 @@ router.post(
         imageUrl = result.secure_url;
       }
 
+      // Parse workingHours nếu là chuỗi
+      let parsedWorkingHours = [];
+      if (workingHours) {
+        parsedWorkingHours = typeof workingHours === 'string'
+          ? JSON.parse(workingHours)
+          : workingHours;
+      }
+
+      // ✅ Parse coupons nếu là chuỗi
+      let parsedCoupons = [];
+      if (coupons) {
+        parsedCoupons = typeof coupons === 'string'
+          ? JSON.parse(coupons)
+          : coupons;
+      }
+
       const newService = await db.Service.create({
         creatorId: user.id,
         name,
@@ -46,6 +69,8 @@ router.post(
         description,
         price: parseFloat(price),
         deposit: parseFloat(deposit),
+        workingHours: parsedWorkingHours,
+        coupons: parsedCoupons // ✅ Lưu coupons
       });
 
       res.status(201).json({
@@ -54,7 +79,7 @@ router.post(
       });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: 'Lỗi server' });
+      res.status(500).json({ message: 'Lỗi server', error: error.message });
     }
   }
 );
@@ -62,7 +87,7 @@ router.post(
 router.get('/', async (req, res) => {
   try {
     const services = await db.Service.findAll({
-      attributes: ['id', 'name', 'description', 'image', 'subCategoryId', 'createdAt'], // trường muốn lấy
+      attributes: ['id', 'name', 'description', 'image', 'subCategoryId', 'createdAt','price', 'deposit', 'workingHours', 'coupons'], 
       include: [
         {
           model: db.SubCategory,
@@ -73,7 +98,7 @@ router.get('/', async (req, res) => {
           model: db.User,
           as: 'creator',
           attributes: ['id', 'username', 'role'],
-          where: { role: 'shop' }, // lấy dịch vụ chỉ của các shop
+          where: { role: 'shop' }, 
         }
       ],
       order: [['createdAt', 'DESC']],

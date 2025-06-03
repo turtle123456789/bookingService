@@ -3,6 +3,44 @@ import { useDispatch, useSelector } from "react-redux";
 import { updatePasswordThunk, updateProfileThunk } from "../../redux/userSlice";
 import { toast } from "react-toastify";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+const cityOptions = [
+  { id: 'hanoi', name: 'Hà Nội' },
+  { id: 'hochiminh', name: 'TP. Hồ Chí Minh' },
+  { id: 'danang', name: 'Đà Nẵng' },
+];
+
+const districtOptions = {
+  hanoi: [
+    { id: 'ba_dinh', name: 'Ba Đình' },
+    { id: 'dong_da', name: 'Đống Đa' },
+    { id: 'hoan_kiem', name: 'Hoàn Kiếm' },
+  ],
+  hochiminh: [
+    { id: 'quan_1', name: 'Quận 1' },
+    { id: 'quan_3', name: 'Quận 3' },
+    { id: 'binh_thanh', name: 'Bình Thạnh' },
+  ],
+  danang: [
+    { id: 'hai_chau', name: 'Hải Châu' },
+    { id: 'son_tra', name: 'Sơn Trà' },
+  ],
+};
+
+const wardOptions = {
+  ba_dinh: [
+    { id: 'phuc_xa', name: 'Phúc Xá' },
+    { id: 'truc_bach', name: 'Trúc Bạch' },
+  ],
+  dong_da: [
+    { id: 'cat_linh', name: 'Cát Linh' },
+    { id: 'quan_thanh', name: 'Quán Thánh' },
+  ],
+  quan_1: [
+    { id: 'ben_nghe', name: 'Bến Nghé' },
+    { id: 'ben_thanh', name: 'Bến Thành' },
+  ],
+  //... bạn có thể thêm các wards khác tương tự
+};
 
 export default function Profile() {
   const dispatch = useDispatch();
@@ -12,17 +50,17 @@ export default function Profile() {
 const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [activeTab, setActiveTab] = useState("info");
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     phonenumber: "",
     role: "",
+    city: "",
+    district: "",
+    ward: "",
   });
-
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
   // Dùng để lưu ảnh avatar tạm khi chọn file
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -37,6 +75,9 @@ const [showOldPassword, setShowOldPassword] = useState(false);
         email: userInfo.email || "",
         phonenumber: userInfo.phonenumber || "",
         role: userInfo.role || "",
+        city: userInfo.city || "",
+        district: userInfo.district || "",
+        ward: userInfo.ward || "",
       });
       setAvatarPreview(userInfo.avatar || "https://via.placeholder.com/150");
     }
@@ -65,6 +106,10 @@ const handleSubmit = async (e) => {
     updateData.append("username", formData.username);
     updateData.append("email", formData.email);
     updateData.append("phonenumber", formData.phonenumber);
+    updateData.append("city", formData.city || "");
+    updateData.append("district", formData.district || "");
+    updateData.append("ward", formData.ward || "");
+
     if (avatarFile) {
       updateData.append("avatar", avatarFile);
     }
@@ -80,6 +125,7 @@ const handleSubmit = async (e) => {
     toast.error("Cập nhật thông tin thất bại. Vui lòng thử lại.");
   }
 };
+
 
 const handlePasswordSubmit = (e) => {
   e.preventDefault();
@@ -261,8 +307,71 @@ const handlePasswordSubmit = (e) => {
                   disabled
                   className="w-full mt-1 p-2 border rounded bg-gray-100"
                 />
+              </div>        
+              <div>
+                <label className="block text-gray-600">Tỉnh/Thành phố</label>
+                <select
+                  name="city"
+                  value={formData.city || ""}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      district: "", // reset district khi đổi city
+                      ward: ""      // reset ward khi đổi city
+                    }));
+                  }}
+                  className="w-full mt-1 p-2 border rounded"
+                  required
+                >
+                  <option value="">Chọn tỉnh/thành phố</option>
+                  {cityOptions.map((city) => (
+                    <option key={city.id} value={city.id}>
+                      {city.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="col-span-2 flex justify-end gap-2 mt-4">
+              <div>
+                <label className="block text-gray-600">Quận/Huyện</label>
+                <select
+                  name="district"
+                  value={formData.district || ""}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setFormData(prev => ({ ...prev, ward: "" })); // reset ward khi đổi district
+                  }}
+                  className="w-full mt-1 p-2 border rounded"
+                  required
+                  disabled={!formData.city}
+                >
+                  <option value="">Chọn quận/huyện</option>
+                  {(districtOptions[formData.city] || []).map((district) => (
+                    <option key={district.id} value={district.id}>
+                      {district.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-600">Phường/Xã</label>
+                <select
+                  name="ward"
+                  value={formData.ward || ""}
+                  onChange={handleChange}
+                  className="w-full mt-1 p-2 border rounded"
+                  required
+                  disabled={!formData.district}
+                >
+                  <option value="">Chọn phường/xã</option>
+                  {(wardOptions[formData.district] || []).map((ward) => (
+                    <option key={ward.id} value={ward.id}>
+                      {ward.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+               <div className="col-span-2 flex justify-end gap-2 mt-4">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}

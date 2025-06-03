@@ -1,75 +1,14 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Slider from 'react-slick'
-import { bg1 } from '../../units/importImg';
 import CartProduct from '../CartProduct/CartProduct';
-const services = [
-  {
-    id: 1,
-    title: "Quần áo basic",
-    description: "Dịch vụ nhỏ nhằm đáp ứng nhu cầu cơ bản...",
-    price: "50.000",
-    image: bg1,
-  },
-  {
-    id: 2,
-    title: "Dịch vụ in logo",
-    description: "In logo theo yêu cầu lên sản phẩm...",
-    price: "70.000",
-    image: bg1,
-  },
-  {
-    id: 3,
-    title: "Thiết kế đồng phục",
-    description: "Tư vấn và thiết kế đồng phục chuyên nghiệp...",
-    price: "150.000",
-    image: bg1,
-  },
-  {
-    id: 4,
-    title: "Tư vấn phối đồ",
-    description: "Chuyên gia thời trang hỗ trợ phối đồ đẹp...",
-    price: "100.000",
-    image: bg1,
-  },
-  {
-    id: 4,
-    title: "Tư vấn phối đồ",
-    description: "Chuyên gia thời trang hỗ trợ phối đồ đẹp...",
-    price: "100.000",
-    image: bg1,
-  },
-   {
-    id: 4,
-    title: "Tư vấn phối đồ",
-    description: "Chuyên gia thời trang hỗ trợ phối đồ đẹp...",
-    price: "100.000",
-    image: bg1,
-  },
-   {
-    id: 4,
-    title: "Tư vấn phối đồ",
-    description: "Chuyên gia thời trang hỗ trợ phối đồ đẹp...",
-    price: "100.000",
-    image: bg1,
-  },
-   {
-    id: 4,
-    title: "Tư vấn phối đồ",
-    description: "Chuyên gia thời trang hỗ trợ phối đồ đẹp...",
-    price: "100.000",
-    image: bg1,
-  },
-   {
-    id: 4,
-    title: "Tư vấn phối đồ",
-    description: "Chuyên gia thời trang hỗ trợ phối đồ đẹp...",
-    price: "100.000",
-    image: bg1,
-  },
-];
-
+import { fetchServicesThunk } from '../../redux/serviceSlice';
+import { useDispatch, useSelector } from 'react-redux';
 const SlideService = () => {
-    
+    const dispatch = useDispatch();
+    const {  services } = useSelector((state) => state.service);
+    useEffect(() => {
+      dispatch(fetchServicesThunk());
+    }, [dispatch]);
     var settings = {
     dots: true,
     infinite: false,
@@ -109,12 +48,12 @@ const SlideService = () => {
   return (
     <div className="slider-container px-20">
         <Slider {...settings}>
-            {services.map((item) => (
+            {services?.slice(0, 36).map((item) => (
             <CartProduct
                 key={item.id}
                 id={item.id}
                 image={item.image}
-                title={item.title}
+                name={item.name}
                 description={item.description}
                 price={item.price}
             />

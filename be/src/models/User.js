@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
     isPayment: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false, 
+      defaultValue: false
     },
     wallet: {
       type: DataTypes.DECIMAL(10, 2),
@@ -52,11 +52,25 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
-     isActivated: {
+    isActivated: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false, 
+      defaultValue: false
     },
+
+    city: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    district: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    ward: {
+      type: DataTypes.STRING,
+      allowNull: true
+    }
+
   }, {
     tableName: 'users',
     timestamps: true

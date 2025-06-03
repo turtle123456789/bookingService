@@ -1,35 +1,38 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../models');
-const User = db.User;
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const multer = require('multer');
+const fs = require('fs');
+const cloudinary = require('../config/cloudinary');
+
+// Cấu hình multer lưu file tạm
 const upload = multer({ dest: 'uploads/' });
-const SECRET_KEY = 'your_secret_key';
-const { authenticateToken, authorizeRole } = require('../middlewares/auth.middleware');
-let refreshTokens = [];
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
 
-  const user = await User.findOne({ where: { email } });
-  if (!user) return res.status(401).json({ error: 'Sai email hoặc mật khẩu' });
+// API upload ảnh (1 ảnh duy nhất)
+router.post('/', upload.single('upload'), async (req, res) => {
+  try {
+    const file = req.file;
 
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) return res.status(401).json({ error: 'Sai email hoặc mật khẩu' });
+    if (!file) {
+      return res.status(400).json({ error: 'Không có ảnh được upload' });
+    }
 
-  const payload = {
-    id: user.id,
-    email: user.email,
-    username: user.username,
-    role: user.role
-  };
+    // Upload lên Cloudinary
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: 'ckeditor',
+      resource_type: 'auto',
+    });
 
-  const accessToken = jwt.sign(payload, SECRET_KEY, { expiresIn: '15m' });
-  const refreshToken = jwt.sign(payload, SECRET_KEY, { expiresIn: '7d' });
+    // Xóa file tạm
+    fs.unlinkSync(file.path);
 
-  refreshTokens.push(refreshToken);
-
-  res.json({ accessToken, refreshToken });
+    // Trả về định dạng CKEditor yêu cầu
+    return res.status(200).json({
+      url: result.secure_url, // Trường CKEditor cần
+    });
+  } catch (err) {
+    console.error('Lỗi upload ảnh:', err);
+    res.status(500).json({ error: 'Lỗi upload ảnh' });
+  }
 });
 
+module.exports = router;

@@ -1,15 +1,15 @@
 import { useNavigate } from "react-router-dom";
+import { bg1 } from "../../units/importImg";
 
 
-const CartProduct = ({ id, image, title, description, price }) => {
+const CartProduct = ({ id, image, name, description, price }) => {
     const navigate = useNavigate()
   return (
-    <div className="px-6" key={id}>
+    <div className="px-6 py-2 border rounded-lg" key={id}>
       <div className="rounded-lg overflow-hidden">
-        <img src={image} alt={title} />
+        <img src={image || bg1} alt={name} className="max-h-[186px] max-w-[296px] object-fill" />
       </div>
-      <h3 className="text-lg font-bold my-2">{title}</h3>
-      <p className="my-2">{description}</p>
+      <h3 className="text-lg font-bold my-2">{name}</h3>
       <span>
         <strong>Giá dự tính:</strong> {price}
       </span>

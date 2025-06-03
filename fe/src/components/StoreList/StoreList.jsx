@@ -1,6 +1,9 @@
 import CartStore from "../CartStore/CartStore";
 import { bg1 } from "../../units/importImg";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchShopsThunk } from "../../redux/shopSlice";
+import { useEffect } from "react";
 
 const fakeStores = [
   {
@@ -37,16 +40,22 @@ const fakeStores = [
 ];
 
 const StoreList = ({ keyword, city, district, ward, store }) => {
-    const navigate = useNavigate()
-  const filteredStores = fakeStores.filter((storeItem) => {
-    return (
-      (!keyword || storeItem.name.toLowerCase().includes(keyword.toLowerCase())) &&
-      (!city || storeItem.city === city) &&
-      (!district || storeItem.district === district) &&
-      (!ward || storeItem.ward === ward) &&
-      (!store || storeItem.name === store) 
-    );
-  });
+    const dispatch = useDispatch()
+  const { shopList } = useSelector(state => state.shops);
+  console.log('shopList :>> ', shopList);
+    useEffect(() => {
+      dispatch(fetchShopsThunk({ isActivated: true }));
+    }, [dispatch]);
+  const navigate = useNavigate()
+  const filteredStores = shopList.filter((storeItem) => {
+  return (
+    (!keyword || storeItem.username?.toLowerCase().includes(keyword?.toLowerCase())) &&
+    (!city || storeItem.city === city) &&
+    (!district || storeItem.district === district) &&
+    (!ward || storeItem.ward === ward) &&
+    (!store || storeItem.name === store) 
+  );
+});
 
 
 
@@ -60,10 +69,10 @@ const StoreList = ({ keyword, city, district, ward, store }) => {
         <CartStore
             key={store.id}
             id={store.id}
-            name={store.name}
-            image={store.image}
+            username={store.username}
+            image={store.avatar}
             address={`${store.ward}, ${store.district}, ${store.city}`}
-            phone={store.phone}
+            phonenumber={store.phonenumber}
              email={store.email}
             onDetailClick={handleDetailClick}
             />

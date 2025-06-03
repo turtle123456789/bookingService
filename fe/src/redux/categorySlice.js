@@ -49,6 +49,18 @@ export const deleteSubCategoryThunk = createAsyncThunk(
     }
   }
 );
+export const getPublicCategories = createAsyncThunk(
+  'category/getPublic',
+  async (_, thunkAPI) => {
+    try {
+      const res = await axiosInstance.get('/categories/public');
+      return res.data.categories;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data || 'Lỗi khi lấy danh mục công khai');
+    }
+  }
+);
+
 const categorySlice = createSlice({
   name: 'category',
   initialState: {
@@ -113,7 +125,20 @@ const categorySlice = createSlice({
     .addCase(deleteSubCategoryThunk.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload;
-    });
+    })
+        .addCase(getPublicCategories.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(getPublicCategories.fulfilled, (state, action) => {
+      state.loading = false;
+      state.list = action.payload;
+    })
+    .addCase(getPublicCategories.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    })
+
   }
 
 });

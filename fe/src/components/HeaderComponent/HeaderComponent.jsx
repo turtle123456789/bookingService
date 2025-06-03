@@ -5,7 +5,7 @@ import { FiUserCheck } from "react-icons/fi";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../redux/userSlice";
-import { getCategories } from "../../redux/categorySlice";
+import { getPublicCategories } from "../../redux/categorySlice";
 
 const services = [
   "Tư vấn thiết kế",
@@ -47,7 +47,7 @@ const HeaderComponent = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-     dispatch(getCategories());
+     dispatch(getPublicCategories());
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
   return (

@@ -186,7 +186,7 @@ router.patch(
   async (req, res) => {
     try {
       const userId = req.user.id;
-      const { username, phonenumber, email } = req.body;
+      const { username, phonenumber, email, city, district, ward } = req.body;
 
       const user = await User.findByPk(userId);
       if (!user) return res.status(404).json({ error: 'Người dùng không tồn tại' });
@@ -206,6 +206,11 @@ router.patch(
       }
 
       if (username) user.username = username;
+
+      // Cập nhật 3 trường địa chỉ nếu có
+      if (city !== undefined) user.city = city;
+      if (district !== undefined) user.district = district;
+      if (ward !== undefined) user.ward = ward;
 
       // Nếu có file avatar mới thì upload lên Cloudinary
       if (req.file) {
@@ -229,6 +234,9 @@ router.patch(
           phonenumber: user.phonenumber,
           username: user.username,
           avatar: user.avatar,
+          city: user.city,
+          district: user.district,
+          ward: user.ward
         },
       });
     } catch (err) {
@@ -236,6 +244,7 @@ router.patch(
     }
   }
 );
+
 router.patch(
   '/me/password',
   authenticateToken,

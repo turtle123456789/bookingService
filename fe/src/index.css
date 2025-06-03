@@ -28,3 +28,9 @@ img{
 .slick-next:before{
     margin-left: 15px;
 }
+.image-custom img {
+  max-width: 400px;
+  height: auto;
+  display: block; /* giúp ảnh không bị inline */
+  margin: 8px 0;
+}

@@ -35,6 +35,16 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 0,
     },
+    workingHours: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
+    },
+    coupons: {
+      type: DataTypes.JSON, 
+      allowNull: true,
+      defaultValue: [],
+    },
   });
 
   return Service;
