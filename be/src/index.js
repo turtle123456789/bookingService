@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
   res.send('Backend Node.js với Express');
 });
 
-db.sequelize.sync({ force: false }) .then(() => {
+db.sequelize.sync({ force: true }) .then(() => {
   app.listen(PORT, () => {
     console.log(`✅ Server đang chạy tại http://localhost:${PORT}`);
   });
