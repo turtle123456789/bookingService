@@ -1,106 +1,52 @@
-import { useState } from "react";
-
-const mockData = [
-  {
-    id: 1,
-    customer: "Nguyễn Văn A",
-    service: "Cắt tóc nam",
-    store: "Salon ABC",
-    time: "2025-05-26 10:00",
-    status: "Đã xác nhận",
-  },
-  {
-    id: 2,
-    customer: "Trần Thị B",
-    service: "Gội đầu dưỡng sinh",
-    store: "Spa Relax",
-    time: "2025-05-27 15:00",
-    status: "Chờ xác nhận",
-  },
-  {
-    id: 3,
-    customer: "Lê Văn C",
-    service: "Massage",
-    store: "Happy Spa",
-    time: "2025-05-28 11:00",
-    status: "Đã huỷ",
-  },
-  {
-    id: 4,
-    customer: "Đặng Thị D",
-    service: "Nail",
-    store: "Nail House",
-    time: "2025-05-29 13:30",
-    status: "Đã xác nhận",
-  },
-  {
-    id: 5,
-    customer: "Phạm Văn E",
-    service: "Cắt tóc nữ",
-    store: "Salon ABC",
-    time: "2025-05-30 09:00",
-    status: "Chờ xác nhận",
-  },
-  {
-    id: 6,
-    customer: "Trịnh Văn F",
-    service: "Massage đá nóng",
-    store: "Relax Zone",
-    time: "2025-06-01 14:00",
-    status: "Đã xác nhận",
-  },
-  // Thêm dữ liệu mẫu cho đủ >10 bản ghi
-  {
-    id: 7,
-    customer: "Hoàng Thị G",
-    service: "Tẩy da chết",
-    store: "Spa ABC",
-    time: "2025-06-02 10:00",
-    status: "Đã xác nhận",
-  },
-  {
-    id: 8,
-    customer: "Vũ Văn H",
-    service: "Xông hơi",
-    store: "Spa Relax",
-    time: "2025-06-03 14:00",
-    status: "Chờ xác nhận",
-  },
-  {
-    id: 9,
-    customer: "Phan Thị I",
-    service: "Làm móng gel",
-    store: "Nail House",
-    time: "2025-06-04 09:30",
-    status: "Đã huỷ",
-  },
-  {
-    id: 10,
-    customer: "Trần Văn J",
-    service: "Cắt tóc nam",
-    store: "Salon ABC",
-    time: "2025-06-05 11:00",
-    status: "Đã xác nhận",
-  },
-  {
-    id: 11,
-    customer: "Nguyễn Thị K",
-    service: "Massage đá nóng",
-    store: "Relax Zone",
-    time: "2025-06-06 15:00",
-    status: "Chờ xác nhận",
-  },
-];
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { approveBookingThunk, getAllBookingsThunk } from "../../redux/bookingSlice";
+import { toast } from "react-toastify";
 
 export default function BookingList() {
+  const dispatch = useDispatch();
+  const { bookings, loading } = useSelector((state) => state.booking);
+  const { userInfo } = useSelector((state) => state.user);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const pageSize = 10; // Cập nhật phân trang 10 hàng mỗi trang
+  const [selectedBooking, setSelectedBooking] = useState(null);
+const [showModal, setShowModal] = useState(false);
 
-  const filteredData = mockData.filter(
+  const pageSize = 10;
+  useEffect(() => {
+    dispatch(getAllBookingsThunk());
+  }, [dispatch]);
+const handleApprove = async (id, status) => {
+  try {
+    const resultAction = await dispatch(approveBookingThunk({ id, status }));
+
+    if (approveBookingThunk.fulfilled.match(resultAction)) {
+      toast.success(`Đã ${status === 'completed' ? 'xác nhận' : 'từ chối'} lịch thành công!`);
+      await dispatch(getAllBookingsThunk());
+    } else {
+      toast.error("Duyệt lịch thất bại!");
+      console.error("Approve lỗi:", resultAction.payload);
+    }
+  } catch (error) {
+    toast.error("Đã xảy ra lỗi!");
+    console.error("Lỗi hệ thống:", error);
+  }
+};
+const closeModal = () => {
+  setShowModal(false);
+  setSelectedBooking(null);
+};
+const filteredData = bookings
+  .filter((item) => {
+    if (userInfo?.role === "admin") return true;
+    if (userInfo?.role === "shop") return item?.service?.creator?.id === userInfo?.id;
+    if (userInfo?.role === "customer") return item?.userId === userInfo?.id;
+    return false;
+  })
+  .filter(
     (item) =>
-      item.customer.toLowerCase().includes(search.toLowerCase()) ||
-      item.service.toLowerCase().includes(search.toLowerCase())
+      item?.customer?.username.toLowerCase().includes(search.toLowerCase()) ||
+      item?.service?.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
@@ -113,6 +59,7 @@ export default function BookingList() {
     <div className="p-6">
       <h2 className="text-2xl font-semibold mb-4">Đặt lịch</h2>
 
+      {loading && <p>Đang tải dữ liệu...</p>}
       <div className="mb-4">
         <input
           type="text"
@@ -133,6 +80,8 @@ export default function BookingList() {
               <th className="px-6 py-3">Khách hàng</th>
               <th className="px-6 py-3">Dịch vụ</th>
               <th className="px-6 py-3">Cửa hàng</th>
+              <th className="px-6 py-3">Tổng tiền</th>
+              <th className="px-6 py-3">Tiền đã cọc</th>
               <th className="px-6 py-3">Thời gian đặt lịch</th>
               <th className="px-6 py-3">Trạng thái</th>
               <th className="px-6 py-3">Hành động</th>
@@ -140,39 +89,63 @@ export default function BookingList() {
           </thead>
           <tbody>
             {paginatedData.map((item) => (
-              <tr key={item.id} className="border-b">
-                <td className="px-6 py-3">{item.customer}</td>
-                <td className="px-6 py-3">{item.service}</td>
-                <td className="px-6 py-3">{item.store}</td>
-                <td className="px-6 py-3">{item.time}</td>
+              console.log('item :>> ', item),
+              <tr key={item?.id} className="border-b">
+                <td className="px-6 py-3">{item?.customer?.username}</td>
+                <td className="px-6 py-3">{item?.service?.name}</td>
+                <td className="px-6 py-3">{item?.service?.creator.username}</td>
+                <td className="px-6 py-3">{item?.service?.price}</td>
+                <td className="px-6 py-3">{(item?.service?.price * (item?.service?.deposit/100)).toFixed(0)}</td>
+               <td className="px-6 py-3">
+                  {item?.service?.workingHours[0]?.day} ({item?.service?.workingHours[0]?.from} - {item?.service?.workingHours[0]?.to})
+                </td>
                 <td className="px-6 py-3">
                   <span
                     className={`px-3 py-1 rounded text-white text-xs ${
-                      item.status === "Đã xác nhận"
+                      item?.status === "completed"
                         ? "bg-green-500"
-                        : item.status === "Chờ xác nhận"
+                        : item?.status === "pending"
                         ? "bg-yellow-500"
                         : "bg-red-500"
                     }`}
                   >
-                    {item.status}
+                    {item?.status === "completed" ? "Đã duyệt" : item?.status === "cancelled" ? "Đã từ chối" : "Đợi duyệt"}
                   </span>
                 </td>
-               <td className="px-6 py-3 space-x-3">
-                {item.status === "Đã xác nhận" || item.status === "Đã huỷ" ? (
-                    <button className="text-blue-600 hover:underline">Xem chi tiết</button>
-                ) : (
+                <td className="px-6 py-3 space-x-3">
+                  {item?.status === "Đã xác nhận" || item?.status === "Đã huỷ" ? (
+                    <button className="text-blue-600 hover:underline">
+                      Xem chi tiết
+                    </button>
+                  ) : (
                     <>
-                    <button className="text-green-600 hover:underline">Xác nhận</button>
-                    <button className="text-red-600 hover:underline">Từ chối</button>
-                    <button className="text-blue-600 hover:underline">Xem chi tiết</button>
-                    </>
-                )}
-                </td>
+                    {userInfo.role === "shop" ||  item.status === "completed" || item.status === "cancelled" && 
+                    (
+                      <>
+                        <button className="text-green-600 hover:underline" onClick={()=>handleApprove(item.id ,"completed")}>
+                          Xác nhận
+                        </button>
+                        <button className="text-red-600 hover:underline" onClick={()=>handleApprove(item.id ,"cancelled")}>
+                          Từ chối
+                        </button>
+                      </>
+                    )}
+                     <button
+                      className="text-blue-600 hover:underline"
+                      onClick={() => {
+                        setSelectedBooking(item);
+                        setShowModal(true);
+                      }}
+                    >
+                      Xem chi tiết
+                    </button>
 
+                    </>
+                  )}
+                </td>
               </tr>
             ))}
-            {paginatedData.length === 0 && (
+            {paginatedData.length === 0 && !loading && (
               <tr>
                 <td colSpan="6" className="text-center py-6 text-gray-500">
                   Không có dữ liệu phù hợp
@@ -182,8 +155,47 @@ export default function BookingList() {
           </tbody>
         </table>
       </div>
+{showModal && selectedBooking && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-6 relative">
+      <button
+        onClick={closeModal}
+        className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+      >
+        ✕
+      </button>
 
-      {/* Phân trang */}
+      <h3 className="text-xl font-bold mb-4">Chi tiết đặt lịch</h3>
+
+      <div className="space-y-3 text-sm">
+        <div><strong>Khách hàng:</strong> {selectedBooking.customer.username} ({selectedBooking.customer.email})</div>
+        <div><strong>Dịch vụ:</strong> {selectedBooking.service.name}</div>
+        <div><strong>Mô tả:</strong> <span dangerouslySetInnerHTML={{ __html: selectedBooking.service.description }} /></div>
+        <div><strong>Giá:</strong> {selectedBooking.service.price}đ</div>
+        <div><strong>Đã cọc:</strong> {selectedBooking.service.deposit/100 * selectedBooking.service.price}đ</div>
+        <div><strong>Mã giảm giá:</strong> {selectedBooking.service.coupons?.map(c => `${c.code} (-${c.discountPercent}%)`).join(", ") || "Không có"}</div>
+        <div><strong>Trạng thái:</strong> 
+          {selectedBooking.status === "completed" ? "Đã duyệt" :
+           selectedBooking.status === "cancelled" ? "Đã từ chối" : "Đợi duyệt"}
+        </div>
+        <div>
+          <strong>Thời gian làm:</strong>{" "}
+          {selectedBooking.bookingDate?.map((t, idx) => (
+            <div key={idx}>
+              {t.day}: {t.from} - {t.to}
+            </div>
+          ))}
+        </div>
+        <div>
+          <strong>Cửa hàng:</strong> {selectedBooking.service.creator.username} ({selectedBooking.service.creator.email})
+        </div>
+        {/* Nếu bạn có địa chỉ shop thì thêm dòng này: */}
+        {/* <div><strong>Địa chỉ:</strong> {selectedBooking.service.creator.address}</div> */}
+      </div>
+    </div>
+  </div>
+)}
+
       <div className="flex justify-end mt-4 gap-3">
         <button
           className="px-4 py-1 bg-gray-200 rounded disabled:opacity-50"

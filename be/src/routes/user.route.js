@@ -178,7 +178,6 @@ router.patch('/:id/status', authenticateToken, authorizeRole(['admin']), async (
     res.status(500).json({ error: err.message });
   }
 });
-
 router.patch(
   '/me',
   authenticateToken,
@@ -186,7 +185,7 @@ router.patch(
   async (req, res) => {
     try {
       const userId = req.user.id;
-      const { username, phonenumber, email, city, district, ward } = req.body;
+      const { username, phonenumber, email, city, district, ward, addresses } = req.body;
 
       const user = await User.findByPk(userId);
       if (!user) return res.status(404).json({ error: 'Người dùng không tồn tại' });
@@ -207,10 +206,23 @@ router.patch(
 
       if (username) user.username = username;
 
-      // Cập nhật 3 trường địa chỉ nếu có
+      // Cập nhật địa chỉ đơn (nếu dùng cho customer)
       if (city !== undefined) user.city = city;
       if (district !== undefined) user.district = district;
       if (ward !== undefined) user.ward = ward;
+
+      // Nếu là role shop, cập nhật địa chỉ dạng mảng
+      if (user.role === 'shop' && addresses) {
+        let parsedAddresses;
+        try {
+          parsedAddresses = typeof addresses === 'string' ? JSON.parse(addresses) : addresses;
+          if (!Array.isArray(parsedAddresses)) throw new Error();
+        } catch {
+          return res.status(400).json({ error: 'Địa chỉ phải là mảng JSON hợp lệ' });
+        }
+
+        user.addresses = parsedAddresses;
+      }
 
       // Nếu có file avatar mới thì upload lên Cloudinary
       if (req.file) {
@@ -236,7 +248,8 @@ router.patch(
           avatar: user.avatar,
           city: user.city,
           district: user.district,
-          ward: user.ward
+          ward: user.ward,
+          addresses: user.role === 'shop' ? user.addresses : undefined
         },
       });
     } catch (err) {
@@ -244,6 +257,7 @@ router.patch(
     }
   }
 );
+
 
 router.patch(
   '/me/password',

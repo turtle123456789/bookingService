@@ -59,6 +59,7 @@ const [showOldPassword, setShowOldPassword] = useState(false);
     city: "",
     district: "",
     ward: "",
+    addresses: [],
   });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   // Dùng để lưu ảnh avatar tạm khi chọn file
@@ -67,6 +68,7 @@ const [showOldPassword, setShowOldPassword] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+const [newAddress, setNewAddress] = useState({ city: '', district: '', ward: '' });
 
   useEffect(() => {
     if (userInfo) {
@@ -87,6 +89,15 @@ const [showOldPassword, setShowOldPassword] = useState(false);
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
+const handleAddAddress = () => {
+  if (newAddress.city && newAddress.district && newAddress.ward) {
+    setFormData(prev => ({
+      ...prev,
+      addresses: [...prev.addresses, newAddress],
+    }));
+    setNewAddress({ city: '', district: '', ward: '' }); // reset
+  }
+};
 
   // Xử lý chọn file ảnh avatar
   const handleAvatarChange = (e) => {
@@ -325,7 +336,7 @@ const handlePasswordSubmit = (e) => {
                   required
                 >
                   <option value="">Chọn tỉnh/thành phố</option>
-                  {cityOptions.map((city) => (
+                  ?{cityOptions?.map((city) => (
                     <option key={city.id} value={city.id}>
                       {city.name}
                     </option>
@@ -346,7 +357,7 @@ const handlePasswordSubmit = (e) => {
                   disabled={!formData.city}
                 >
                   <option value="">Chọn quận/huyện</option>
-                  {(districtOptions[formData.city] || []).map((district) => (
+                  {(districtOptions[formData.city] || [])?.map((district) => (
                     <option key={district.id} value={district.id}>
                       {district.name}
                     </option>
@@ -364,13 +375,107 @@ const handlePasswordSubmit = (e) => {
                   disabled={!formData.district}
                 >
                   <option value="">Chọn phường/xã</option>
-                  {(wardOptions[formData.district] || []).map((ward) => (
+                  {(wardOptions[formData.district] || [])?.map((ward) => (
                     <option key={ward.id} value={ward.id}>
                       {ward.name}
                     </option>
                   ))}
                 </select>
               </div>
+               {formData.role === "shop" && (
+              <>
+                <div className="col-span-2 border-t pt-4 mt-4">
+                  <h4 className="text-lg font-semibold mb-2">Danh sách địa chỉ phụ</h4>
+
+                  <div className="grid grid-cols-3 gap-2 mb-2">
+                    <select
+                      value={newAddress.city}
+                      onChange={(e) =>
+                        setNewAddress((prev) => ({
+                          ...prev,
+                          city: e.target.value,
+                          district: '',
+                          ward: '',
+                        }))
+                      }
+                      className="p-2 border rounded"
+                    >
+                      <option value="">Chọn tỉnh</option>
+                      ?{cityOptions?.map((city) => (
+                        <option key={city.id} value={city.id}>
+                          {city.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={newAddress.district}
+                      onChange={(e) =>
+                        setNewAddress((prev) => ({ ...prev, district: e.target.value, ward: '' }))
+                      }
+                      className="p-2 border rounded"
+                      disabled={!newAddress.city}
+                    >
+                      <option value="">Chọn huyện</option>
+                      {(districtOptions[newAddress.city] || [])?.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={newAddress.ward}
+                      onChange={(e) =>
+                        setNewAddress((prev) => ({ ...prev, ward: e.target.value }))
+                      }
+                      className="p-2 border rounded"
+                      disabled={!newAddress.district}
+                    >
+                      <option value="">Chọn xã</option>
+                      {(wardOptions[newAddress.district] || [])?.map((w) => (
+                        <option key={w.id} value={w.id}>
+                          {w.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAddAddress}
+                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Thêm địa chỉ
+                  </button>
+
+                  <ul className="mt-3 space-y-2">
+                    {formData?.addresses?.map((addr, idx) => (
+                      <li key={idx} className="flex items-center justify-between bg-gray-100 p-2 rounded">
+                        <span>
+                          {cityOptions.find(c => c.id === addr.city)?.name},{" "}
+                          {districtOptions[addr.city]?.find(d => d.id === addr.district)?.name},{" "}
+                          {wardOptions[addr.district]?.find(w => w.id === addr.ward)?.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              addresses: prev.addresses.filter((_, i) => i !== idx),
+                            }));
+                          }}
+                          className="text-red-600 hover:underline"
+                        >
+                          Xoá
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
+
                <div className="col-span-2 flex justify-end gap-2 mt-4">
                 <button
                   type="button"
@@ -454,7 +559,7 @@ const handlePasswordSubmit = (e) => {
               {showConfirmPassword ? <FaRegEyeSlash /> : <FaRegEye />}
             </button>
           </div>
-
+           
           <div className="flex justify-end">
             <button
               type="submit"
@@ -464,6 +569,7 @@ const handlePasswordSubmit = (e) => {
               {loading ? "Đang đổi..." : "Đổi mật khẩu"}
             </button>
           </div>
+
         </form>
       )}
 

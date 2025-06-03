@@ -82,11 +82,7 @@ db.User.hasMany(db.Service, {
   foreignKey: 'creatorId',
   as: 'services',
 });
-db.Booking.belongsTo(db.User, { foreignKey: 'userId', as: 'customer' });
-db.User.hasMany(db.Booking, { foreignKey: 'userId', as: 'bookings' });
 
-db.Booking.belongsTo(db.Service, { foreignKey: 'serviceId', as: 'service' });
-db.Service.hasMany(db.Booking, { foreignKey: 'serviceId', as: 'bookings' });
 // Service -> SubCategory
 db.Service.belongsTo(db.SubCategory, {
   foreignKey: 'subCategoryId',
@@ -96,6 +92,10 @@ db.SubCategory.hasMany(db.Service, {
   foreignKey: 'subCategoryId',
   as: 'services',
 });
+db.Booking.belongsTo(db.User, { foreignKey: 'userId', as: 'customer' });
+db.User.hasMany(db.Booking, { foreignKey: 'userId', as: 'bookings' });
 
+db.Booking.belongsTo(db.Service, { foreignKey: 'serviceId', as: 'service' });
+db.Service.hasMany(db.Booking, { foreignKey: 'serviceId', as: 'bookings' });
 db.sequelize = sequelize;
 module.exports = db;

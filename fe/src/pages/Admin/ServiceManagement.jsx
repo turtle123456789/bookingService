@@ -14,7 +14,7 @@ export default function ServiceManagement() {
   const [page, setPage] = useState(1);
   const [services, setServices] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const { userInfo } = useSelector((state) => state.user);
   const { shopList } = useSelector((state) => state.shops);
   const { list } = useSelector((state) => state.category);
   const allSubCategories = list.flatMap((cat) => cat.subCategories || []);
@@ -46,18 +46,28 @@ export default function ServiceManagement() {
     }
   }, [createdService, dispatch]);
 
-  const filteredServices = useMemo(() => {
-    return services?.filter((s) => {
-      const matchSearch =
-        s?.name?.toLowerCase().includes(search?.toLowerCase()) ||
-        (s?.description && s?.description?.toLowerCase().includes(search?.toLowerCase()));
-      const matchShop = selectedShop ? s?.shopId === Number(selectedShop) : true;
-      const matchSubCategory = selectedSubCategory
-        ? s?.subCategoryId === Number(selectedSubCategory)
-        : true;
-      return matchSearch && matchShop && matchSubCategory;
-    });
-  }, [search, selectedShop, selectedSubCategory, services]);
+const filteredServices = useMemo(() => {
+  if (!services) return [];
+
+  return services.filter((s) => {
+    console.log('s :>> ', s);
+    if (userInfo?.role === "shop" && s?.creator?.id !== userInfo?.id) {
+      return false;
+    }
+
+    // Áp dụng điều kiện lọc chung
+    const matchSearch =
+      s?.name?.toLowerCase().includes(search?.toLowerCase()) ||
+      s?.description?.toLowerCase().includes(search?.toLowerCase());
+
+    const matchShop = selectedShop ? s?.creator?.id === Number(selectedShop) : true;
+    const matchSubCategory = selectedSubCategory
+      ? s?.subCategoryId === Number(selectedSubCategory)
+      : true;
+
+    return matchSearch && matchShop && matchSubCategory;
+  });
+}, [search, selectedShop, selectedSubCategory, services, userInfo]);
 
   const totalPages = Math.ceil(filteredServices?.length / PAGE_SIZE);
   const paginatedServices = filteredServices?.slice(
@@ -93,7 +103,10 @@ export default function ServiceManagement() {
           }}
         />
 
-        <select
+      
+         {userInfo?.role === "admin" &&(
+          <>
+              <select
           className="p-3 border rounded max-w-xs"
           value={selectedShop}
           onChange={(e) => {
@@ -124,13 +137,18 @@ export default function ServiceManagement() {
             </option>
           ))}
         </select>
-
+          </>
+       )
+       }
+       {userInfo?.role === "shop" &&(
         <button
           onClick={() => setIsModalOpen(true)}
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
         >
           Thêm dịch vụ
         </button>
+       )
+       }
       </div>
 
       <div className="overflow-x-auto bg-white shadow rounded-lg">

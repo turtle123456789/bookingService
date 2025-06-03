@@ -69,8 +69,17 @@ module.exports = (sequelize, DataTypes) => {
     ward: {
       type: DataTypes.STRING,
       allowNull: true
+    },
+    listCoupon: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [] 
+    },
+    addresses: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: []
     }
-
   }, {
     tableName: 'users',
     timestamps: true
