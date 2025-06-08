@@ -4,13 +4,15 @@ import categoryReducer from './categorySlice'
 import shopReducer from './shopSlice'
 import serviceReducer from './serviceSlice'
 import bookingReducer from './bookingSlice'
+import feedbaclReducer from './feedbackSlice'
 const store = configureStore({
   reducer: {
     user: userReducer,
     category: categoryReducer,
     shops: shopReducer,
     service: serviceReducer,
-    booking: bookingReducer
+    booking: bookingReducer,
+    feedback: feedbaclReducer
   },
 });
 

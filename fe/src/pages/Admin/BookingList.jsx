@@ -95,7 +95,7 @@ const filteredData = bookings
                 <td className="px-6 py-3">{item?.service?.name}</td>
                 <td className="px-6 py-3">{item?.service?.creator.username}</td>
                 <td className="px-6 py-3">{item?.service?.price}</td>
-                <td className="px-6 py-3">{(item?.service?.price * (item?.service?.deposit/100)).toFixed(0)}</td>
+                <td className="px-6 py-3">{(item?.depositAmount || 0)}</td>
                <td className="px-6 py-3">
                   {item?.service?.workingHours[0]?.day} ({item?.service?.workingHours[0]?.from} - {item?.service?.workingHours[0]?.to})
                 </td>
@@ -155,46 +155,46 @@ const filteredData = bookings
           </tbody>
         </table>
       </div>
-{showModal && selectedBooking && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-6 relative">
-      <button
-        onClick={closeModal}
-        className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
-      >
-        ✕
-      </button>
+    {showModal && selectedBooking && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-6 relative">
+          <button
+            onClick={closeModal}
+            className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+          >
+            ✕
+          </button>
 
-      <h3 className="text-xl font-bold mb-4">Chi tiết đặt lịch</h3>
+          <h3 className="text-xl font-bold mb-4">Chi tiết đặt lịch</h3>
 
-      <div className="space-y-3 text-sm">
-        <div><strong>Khách hàng:</strong> {selectedBooking.customer.username} ({selectedBooking.customer.email})</div>
-        <div><strong>Dịch vụ:</strong> {selectedBooking.service.name}</div>
-        <div><strong>Mô tả:</strong> <span dangerouslySetInnerHTML={{ __html: selectedBooking.service.description }} /></div>
-        <div><strong>Giá:</strong> {selectedBooking.service.price}đ</div>
-        <div><strong>Đã cọc:</strong> {selectedBooking.service.deposit/100 * selectedBooking.service.price}đ</div>
-        <div><strong>Mã giảm giá:</strong> {selectedBooking.service.coupons?.map(c => `${c.code} (-${c.discountPercent}%)`).join(", ") || "Không có"}</div>
-        <div><strong>Trạng thái:</strong> 
-          {selectedBooking.status === "completed" ? "Đã duyệt" :
-           selectedBooking.status === "cancelled" ? "Đã từ chối" : "Đợi duyệt"}
-        </div>
-        <div>
-          <strong>Thời gian làm:</strong>{" "}
-          {selectedBooking.bookingDate?.map((t, idx) => (
-            <div key={idx}>
-              {t.day}: {t.from} - {t.to}
+          <div className="space-y-3 text-sm overflow-auto max-h-[650px]">
+            <div><strong>Khách hàng:</strong> {selectedBooking.customer.username} ({selectedBooking.customer.email})</div>
+            <div><strong>Dịch vụ:</strong> {selectedBooking.service.name}</div>
+            <div><strong>Mô tả:</strong> <span dangerouslySetInnerHTML={{ __html: selectedBooking.service.description }} /></div>
+            <div><strong>Giá:</strong> {selectedBooking.service.price}đ</div>
+            <div><strong>Đã cọc:</strong> {selectedBooking.depositAmount}đ</div>
+            <div><strong>Mã giảm giá:</strong> {selectedBooking.service.coupons?.map(c => `${c.code} (-${c.discountPercent}%)`).join(", ") || "Không có"}</div>
+            <div><strong>Trạng thái:</strong> 
+              {selectedBooking.status === "completed" ? "Đã duyệt" :
+              selectedBooking.status === "cancelled" ? "Đã từ chối" : "Đợi duyệt"}
             </div>
-          ))}
+            <div>
+              <strong>Thời gian làm:</strong>{" "}
+              {selectedBooking.bookingDate?.map((t, idx) => (
+                <div key={idx}>
+                  {t.day}: {t.from} - {t.to}
+                </div>
+              ))}
+            </div>
+            <div>
+              <strong>Cửa hàng:</strong> {selectedBooking.service.creator.username} ({selectedBooking.service.creator.email})
+            </div>
+            {/* Nếu bạn có địa chỉ shop thì thêm dòng này: */}
+            {/* <div><strong>Địa chỉ:</strong> {selectedBooking.service.creator.address}</div> */}
+          </div>
         </div>
-        <div>
-          <strong>Cửa hàng:</strong> {selectedBooking.service.creator.username} ({selectedBooking.service.creator.email})
-        </div>
-        {/* Nếu bạn có địa chỉ shop thì thêm dòng này: */}
-        {/* <div><strong>Địa chỉ:</strong> {selectedBooking.service.creator.address}</div> */}
       </div>
-    </div>
-  </div>
-)}
+    )}
 
       <div className="flex justify-end mt-4 gap-3">
         <button

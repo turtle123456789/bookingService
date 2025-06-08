@@ -15,7 +15,7 @@ const ChooseServicePage = () => {
   const [selectedShop, setSelectedShop] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  
+const [selectedCoupon, setSelectedCoupon] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { list } = useSelector(state => state.category);
@@ -76,6 +76,8 @@ const ChooseServicePage = () => {
         serviceId: selectedService,
         shopId: selectedShop,
         bookingDate: [{ day, from, to }],
+        depositAmount:    selectedServiceDetail.price *(1 - (selectedCoupon?.discountPercent || 0) / 100) * (selectedServiceDetail.deposit / 100),
+        coupons:selectedCoupon.code
       };
 
       setPendingBookingData(bookingData);
@@ -205,6 +207,78 @@ const confirmAndCreateBooking = (bookingData) => {
                 ))}
               </select>
             </label>
+              {selectedServiceDetail?.coupons?.length > 0 && (
+                <div className="mb-4">
+                  <span className="text-gray-700 font-medium">Chọn mã giảm giá (nếu có):</span>
+                  <div className="mt-2 space-y-2">
+                    {selectedServiceDetail.coupons.map((coupon) => (
+                      <label
+                        key={coupon.code}
+                        className="flex items-center space-x-2 border p-2 rounded hover:bg-orange-50 cursor-pointer"
+                      >
+                        <input
+                          type="radio"
+                          name="coupon"
+                          value={coupon.code}
+                          checked={selectedCoupon?.code === coupon.code}
+                          onChange={() =>
+                            setSelectedCoupon({
+                              code: coupon.code,
+                              discountPercent: coupon.discountPercent,
+                            })
+                          }
+                        />
+                        <div>
+                          <p className="font-semibold">{coupon.code}</p>
+                          <p className="text-sm text-green-600">
+                            Giảm giá: {coupon.discountPercent}%
+                          </p>
+                        </div>
+                      </label>
+                    ))}
+                    <label className="flex items-center space-x-2 border p-2 rounded hover:bg-orange-50">
+                      <input
+                        type="radio"
+                        name="coupon"
+                        value=""
+                        checked={selectedCoupon === null}
+                        onChange={() => setSelectedCoupon(null)}
+                      />
+                      <span>Không chọn mã giảm giá</span>
+                    </label>
+                    {selectedServiceDetail && (
+                      <div className="mt-6 p-4 border rounded-lg bg-gray-50">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                          Thông tin thanh toán
+                        </h3>
+
+                        {/* Tính giá sau giảm */}
+                        <div className="flex justify-between text-gray-700">
+                          <span>Tổng tiền:</span>
+                          <span className="font-medium text-blue-600">
+                            {(
+                              selectedServiceDetail.price *
+                              (1 - (selectedCoupon?.discountPercent || 0) / 100)
+                            ).toLocaleString()}₫
+                          </span>
+                        </div>
+
+                        {/* Tính tiền cọc */}
+                        <div className="flex justify-between text-gray-700 mt-1">
+                          <span>Tiền phải đặt cọc:</span>
+                          <span className="font-medium text-orange-600">
+                            {(
+                              selectedServiceDetail.price *
+                              (1 - (selectedCoupon?.discountPercent || 0) / 100) *
+                              (selectedServiceDetail.deposit / 100)
+                            ).toLocaleString()}₫
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+      )}
           </>
         )}
 
@@ -286,8 +360,6 @@ const confirmAndCreateBooking = (bookingData) => {
           </div>
         </div>
       )}
-
-
       </div>
       
     </div>

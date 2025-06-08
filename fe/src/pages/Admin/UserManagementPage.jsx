@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { getUsersThunk } from '../../redux/userSlice';
+import { useNavigate } from 'react-router-dom';
 
 export default function UserManagementPage() {
   const dispatch = useDispatch();
@@ -12,16 +13,22 @@ export default function UserManagementPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-
+  const navigate = useNavigate()
+  const { userInfo } = useSelector((state) => state.user);
+  useEffect(()=>{
+    if(userInfo?.role !== 'admin'){
+      navigate('/admin/profile')
+    }
+  },[userInfo,navigate])
   useEffect(() => {
     dispatch(getUsersThunk());
   }, [dispatch]);
 
   // Filter & phân trang
-  const filteredUsers = users.filter((user) =>
-    user.username?.toLowerCase().includes(searchTerm?.toLowerCase())
-  );
-
+const filteredUsers = users.filter((user) =>
+  user.role !== "shop" &&
+  user.username?.toLowerCase().includes(searchTerm?.toLowerCase())
+)
   const ITEMS_PER_PAGE = 10;
   const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
   const currentUsers = filteredUsers.slice(

@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function CreateServiceModal({
   isOpen,
@@ -16,22 +18,34 @@ export default function CreateServiceModal({
     description: "",
     price: "",
     deposit: "",
+    imagePreview: null,
+
   });
 
   const [workingHours, setWorkingHours] = useState([{ day: "", from: "", to: "" }]);
   
   // Thêm state quản lý coupons
   const [coupons, setCoupons] = useState([{ code: "", discountPercent: "" }]);
-
+  const navigate = useNavigate()
+  const { userInfo } = useSelector((state) => state.user);
+  useEffect(()=>{
+    if(userInfo?.role !== 'shop'){
+      navigate('/admin/profile')
+    }
+  },[userInfo,navigate])
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((f) => ({ ...f, [name]: value }));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setFormData((f) => ({ ...f, image: file }));
-  };
+const handleImageChange = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const imagePreview = URL.createObjectURL(file);
+    setFormData((f) => ({ ...f, image: file, imagePreview }));
+  }
+};
+
 
   const handleWorkingHourChange = (index, field, value) => {
     const updated = [...workingHours];
@@ -180,6 +194,17 @@ export default function CreateServiceModal({
             onChange={handleImageChange}
             className="w-full border rounded px-3 py-2"
           />
+          {formData.imagePreview && (
+            <div className="mt-2">
+              <p className="text-sm text-gray-600">Xem trước ảnh:</p>
+              <img
+                src={formData.imagePreview}
+                alt="Preview"
+                className="w-20 h-20 object-cover border mt-1 rounded-full"
+              />
+            </div>
+          )}
+
           <div>
             <label className="block mb-1 font-semibold">Mô tả</label>
             <CKEditor
@@ -264,7 +289,6 @@ export default function CreateServiceModal({
                   value={coupon.code}
                   onChange={(e) => handleCouponChange(index, "code", e.target.value)}
                   className="flex-1 border rounded px-3 py-2"
-                  required
                 />
                 <input
                   type="number"

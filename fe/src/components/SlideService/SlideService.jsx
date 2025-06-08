@@ -45,20 +45,30 @@ const SlideService = () => {
         }
     ]
     };
+const top36Services = services
+  ?.map(service => {
+    const totalRating = service.feedbacks?.reduce((sum, fb) => sum + fb.rating, 0) || 0;
+    return {
+      ...service,
+      totalRating
+    };
+  })
+  .sort((a, b) => b.totalRating - a.totalRating)
+  .slice(0, 36);
   return (
     <div className="slider-container px-20">
         <Slider {...settings}>
-            {services?.slice(0, 36).map((item) => (
+          {top36Services?.map((item) => (
             <CartProduct
-                key={item.id}
-                id={item.id}
-                image={item.image}
-                name={item.name}
-                description={item.description}
-                price={item.price}
+              key={item.id}
+              id={item.id}
+              image={item.image}
+              name={item.name}
+              description={item.description}
+              price={item.price}
             />
-            ))}
-      </Slider>
+          ))}
+        </Slider>
     </div>
   )
 }

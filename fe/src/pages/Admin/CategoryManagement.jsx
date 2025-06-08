@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import CreateCategoryForm from "./CreateCategoryForm";
 import { useDispatch, useSelector } from "react-redux";
 import { getCategories, deleteCategoryThunk, deleteSubCategoryThunk } from "../../redux/categorySlice";
+import { useNavigate } from "react-router-dom";
 
 export default function CategoryManagement() {
   const [search, setSearch] = useState("");
@@ -15,7 +16,13 @@ export default function CategoryManagement() {
 
   const dispatch = useDispatch();
   const { list, loading, error } = useSelector(state => state.category);
-
+  const navigate = useNavigate()
+  const { userInfo } = useSelector((state) => state.user);
+  useEffect(()=>{
+    if(userInfo?.role === 'customer'){
+      navigate('/admin/profile')
+    }
+  },[userInfo,navigate])
   useEffect(() => {
     dispatch(getCategories());
   }, [dispatch]);
@@ -66,25 +73,26 @@ export default function CategoryManagement() {
   return (
     <div className="p-6">
       <h2 className="text-2xl font-semibold mb-4">Quản lý danh mục</h2>
-
-      <div className="flex items-center mb-4 gap-3">
-        <input
-          type="text"
-          placeholder="Tìm kiếm danh mục..."
-          className="flex-grow p-3 border rounded shadow-sm max-w-md"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
-        <button
-          onClick={() => setShowPopup(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-        >
-          Thêm danh mục
-        </button>
-      </div>
+      {userInfo?.role === 'shop' && (
+        <div className="flex items-center mb-4 gap-3">
+          <input
+            type="text"
+            placeholder="Tìm kiếm danh mục..."
+            className="flex-grow p-3 border rounded shadow-sm max-w-md"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+          <button
+            onClick={() => setShowPopup(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
+            Thêm danh mục
+          </button>
+        </div>
+      )}
 
       <div className="overflow-x-auto bg-white shadow rounded-lg">
         <table className="min-w-[600px] w-full text-left text-sm">

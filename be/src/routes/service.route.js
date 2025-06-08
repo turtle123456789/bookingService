@@ -99,6 +99,18 @@ router.get('/', async (req, res) => {
           as: 'creator',
           attributes: ['id', 'username', 'role'],
           where: { role: 'shop' }, 
+        },
+        {
+          model: db.Feedback, 
+          as: 'feedbacks', 
+          attributes: ['id', 'rating', 'comment', 'createdAt'],
+          include: [
+            {
+              model: db.User,
+              as: 'user', 
+              attributes: ['id', 'username']
+            }
+          ]
         }
       ],
       order: [['createdAt', 'DESC']],

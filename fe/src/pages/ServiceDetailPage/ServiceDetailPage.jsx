@@ -1,18 +1,39 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { bg1 } from "../../units/importImg";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShopsThunk } from "../../redux/shopSlice";
 import { fetchServicesThunk } from "../../redux/serviceSlice";
+import Rating from "react-rating";
 import { getCategories } from "../../redux/categorySlice";
-
-
+import {
+  getFeedbacksByService,
+  createFeedback,
+} from "../../redux/feedbackSlice";
+import { FiUserCheck } from "react-icons/fi";
 const ServiceDetailPage = () => {
   const { serviceId } = useParams();
   const dispatch = useDispatch()
   const { list } = useSelector(state => state.category);
   const { shopList } = useSelector(state => state.shops);
   const {  services } = useSelector((state) => state.service);
+  const {feedbacks} = useSelector((state) => state.feedback);
+const [comment, setComment] = useState("");
+const [rating, setRating] = useState(5);
+
+useEffect(() => {
+  if (serviceId) {
+    dispatch(getFeedbacksByService(serviceId));
+  }
+}, [dispatch, serviceId]);
+
+const handleSubmitFeedback = (e) => {
+  e.preventDefault();
+  if (!comment.trim()) return;
+  console.log('Number(serviceId), rating, comment :>> ', Number(serviceId), rating, comment);
+  dispatch(createFeedback({ serviceId: Number(serviceId), rating, comment }));
+  setComment("");
+};
+
   const navigate = useNavigate()
     useEffect(() => {
        dispatch(getCategories());
@@ -113,6 +134,67 @@ console.log('Matched Shops:', matchedShops);
             ))}
             </div>
         )}
+        </div>
+        <div className="bg-white shadow rounded p-4 mt-10">
+          <h2 className="text-2xl font-semibold text-[#26b65d] mb-4">Đánh giá dịch vụ</h2>
+
+          <form onSubmit={handleSubmitFeedback} className="mb-6 space-y-3">
+            <label className="block">
+              <span className="text-gray-700">Chấm điểm:</span>
+              <div className="mt-1">
+                <Rating
+                  initialRating={rating}
+                  onChange={(rate) => setRating(rate)}
+                  emptySymbol={<span className="text-gray-300 text-2xl">☆</span>}
+                  fullSymbol={<span className="text-yellow-500 text-2xl">★</span>}
+                />
+              </div>
+            </label>
+            <label className="block">
+              <span className="text-gray-700">Bình luận:</span>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows="3"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded"
+                placeholder="Viết đánh giá..."
+              />
+            </label>
+            <button
+              type="submit"
+              className="bg-[#26b65d] text-white px-4 py-2 rounded hover:bg-green-700"
+            >
+              Gửi đánh giá
+            </button>
+          </form>
+
+          <div className="space-y-4">
+            {feedbacks.length === 0 ? (
+              <p className="text-gray-500 italic">Chưa có đánh giá nào.</p>
+            ) : (
+              feedbacks.map((fb) => (
+                <div key={fb?.id} className="border-t pt-3">
+                  <div className="flex items-center gap-2">
+                    {fb?.user?.avatar ? (
+                      <img
+                        src={fb?.user?.avatar}
+                        alt={fb?.user?.username}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ):(
+                    <FiUserCheck />
+                    )}
+                    
+                    <div>
+                      <p className="font-semibold">{fb?.user?.username}</p>
+                      <p className="text-sm text-yellow-500">Đánh giá: {fb?.rating}⭐</p>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-gray-700">{fb?.comment}</p>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
     </div>

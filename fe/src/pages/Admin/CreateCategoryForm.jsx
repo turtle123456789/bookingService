@@ -1,21 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createCategoryThunk } from '../../redux/categorySlice';
 import { toast } from "react-toastify";
+import { useNavigate } from 'react-router-dom';
 
 const CreateCategoryForm = ({ onClose, onCreated }) => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.category);
-
+  const [previewImage, setPreviewImage] = useState(null);
   const [name, setName] = useState('');
   const [image, setImage] = useState(null);
-  const [subCategories, setSubCategories] = useState([{ name: '', image: null }]);
-
-  const handleSubChange = (index, field, value) => {
-    const newSubs = [...subCategories];
+  const [subCategories, setSubCategories] = useState([{ name: '', image: null, preview: null }]);
+  const navigate = useNavigate()
+  const { userInfo } = useSelector((state) => state.user);
+  useEffect(()=>{
+    if(userInfo?.role !== 'shop'){
+      navigate('/admin/profile')
+    }
+  },[userInfo,navigate])
+const handleSubChange = (index, field, value) => {
+  const newSubs = [...subCategories];
+  if (field === 'image') {
+    newSubs[index].image = value;
+    newSubs[index].preview = value ? URL.createObjectURL(value) : null;
+  } else {
     newSubs[index][field] = value;
-    setSubCategories(newSubs);
-  };
+  }
+  setSubCategories(newSubs);
+};
 
   const addSubCategory = () => setSubCategories([...subCategories, { name: '', image: null }]);
   const removeSubCategory = (index) => {
@@ -64,7 +76,18 @@ const CreateCategoryForm = ({ onClose, onCreated }) => {
         className="w-full p-2 border rounded mb-2"
         required
       />
-      <input type="file" onChange={(e) => setImage(e.target.files[0])} className="mb-4" />
+    <input
+        type="file"
+        onChange={(e) => {
+          const file = e.target.files[0];
+          setImage(file);
+          setPreviewImage(file ? URL.createObjectURL(file) : null);
+        }}
+        className="mb-4"
+      />
+      {previewImage && (
+        <img src={previewImage} alt="Preview" className="h-20 w-20  mb-1 object-cover rounded-full" />
+      )}
 
       {subCategories.map((sub, index) => (
         <div key={index} className="mb-3 border p-2 rounded">
@@ -81,6 +104,10 @@ const CreateCategoryForm = ({ onClose, onCreated }) => {
             onChange={(e) => handleSubChange(index, 'image', e.target.files[0])}
             className="mb-1"
           />
+          {sub.preview && (
+            <img src={sub.preview} alt="Sub Preview" className="h-20 w-20  mb-1 object-cover rounded-full" />
+          )}
+
           <button type="button" onClick={() => removeSubCategory(index)} className="text-red-600 text-sm">
             Xóa
           </button>

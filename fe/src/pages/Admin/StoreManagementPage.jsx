@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchShopsThunk } from "../../redux/shopSlice";
 import { updateUserStatusThunk } from "../../redux/userSlice";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -12,7 +13,13 @@ export default function StoreManagementPage() {
 
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-
+  const navigate = useNavigate()
+  const { userInfo } = useSelector((state) => state.user);
+  useEffect(()=>{
+    if(userInfo?.role === 'customer'){
+      navigate('/admin/profile')
+    }
+  },[userInfo,navigate])
   useEffect(() => {
     dispatch(fetchShopsThunk({ isActivated: true }));
 

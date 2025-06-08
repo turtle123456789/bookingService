@@ -36,7 +36,7 @@ const HomePage = () => {
         </div>
         <ServiceFeatures/>
         <div className='my-12'>
-          <h1 className='text-xl font-bold'>Danh Mục Nổi Bật Trong Tháng</h1>
+          <h1 className='text-xl font-bold'>Danh Mục Nổi Bậc Trong Tháng</h1>
           <br />
           <div className='flex ga p-3 justify-between '>
             {renderList.map((item, index) => (
@@ -45,7 +45,7 @@ const HomePage = () => {
                 className='cursor-pointer border border-[#bfbfbf] hover:border-[#ff6f3c] p-3 rounded-lg text-center max-w-[250px]'
               >
                 <div>
-                  <img src={item.image} alt={item.name} className='min-w-[224px] min-h-[217px]'/>
+                  <img src={item.image} alt={item.name} className='min-w-[224px] min-h-[217px] max-w-[224px] max-h-[217px]'/>
                 </div>
                 <p className='mt-3'>{item.name}</p>
               </div>
@@ -53,7 +53,7 @@ const HomePage = () => {
           </div>
         </div>
         <div className='my-12'>
-          <h1 className='text-xl font-bold'>Danh Mục Nổi Bật Trong Tháng</h1>
+          <h1 className='text-xl font-bold'>Dịch Vụ Nổi Bậc</h1>
           <br />
           <SlideService/>
         </div>

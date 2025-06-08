@@ -97,5 +97,13 @@ db.User.hasMany(db.Booking, { foreignKey: 'userId', as: 'bookings' });
 
 db.Booking.belongsTo(db.Service, { foreignKey: 'serviceId', as: 'service' });
 db.Service.hasMany(db.Booking, { foreignKey: 'serviceId', as: 'bookings' });
+// Service associations
+db.Service.hasMany(db.Feedback, { foreignKey: 'serviceId', as: 'feedbacks' });
+db.Feedback.belongsTo(db.Service, { foreignKey: 'serviceId', as: 'service' });
+
+// User associations
+db.User.hasMany(db.Feedback, { foreignKey: 'userId', as: 'feedbacks' });
+db.Feedback.belongsTo(db.User, { foreignKey: 'userId', as: 'user' });
+
 db.sequelize = sequelize;
 module.exports = db;

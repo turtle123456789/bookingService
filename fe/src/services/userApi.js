@@ -39,7 +39,6 @@ export const loginUser = async (email, password) => {
 export const getProfile = async () => {
   try {
     const response = await axiosInstance.get('/users/profile');
-    console.log('Thông tin người dùng:', response.data);
     return response.data;
   } catch (error) {
     console.error('Lỗi lấy profile:', error.response?.data || error.message);

@@ -4,6 +4,7 @@ import { fetchShopsThunk } from "../../redux/shopSlice";
 import { getCategories } from "../../redux/categorySlice";
 import CreateServiceModal from "./CreateServiceModal";
 import { createServiceThunk, fetchServicesThunk } from "../../redux/serviceSlice";
+import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 10;
 
@@ -22,7 +23,13 @@ export default function ServiceManagement() {
   const { createdService, loading, error, services: servicesFromStore } = useSelector((state) => state.service);
   console.log('services :>> ', services);
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
+  console.log('userInfo :>> ', userInfo);
+  useEffect(()=>{
+    if(userInfo?.role === 'customer'){
+      navigate('/admin/profile')
+    }
+  },[userInfo,navigate])
   useEffect(() => {
     dispatch(fetchShopsThunk({ isActivated: true }));
     dispatch(getCategories());
@@ -230,15 +237,17 @@ const filteredServices = useMemo(() => {
           Sau
         </button>
       </div>
+        {userInfo?.role === "shop" && (
+          <CreateServiceModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onCreate={handleCreate}
+            subCategoryOptions={allSubCategories}
+            loading={loading}
+            error={error}
+          />
 
-      <CreateServiceModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onCreate={handleCreate}
-        subCategoryOptions={allSubCategories}
-        loading={loading}
-        error={error}
-      />
+        )}
     </div>
   );
 }

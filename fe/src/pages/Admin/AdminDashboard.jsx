@@ -19,8 +19,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 const stats = [
   { label: "Tổng khách hàng", icon: <FaUsers className="text-blue-500 text-3xl" />, count: 1200 },
   { label: "Tổng cửa hàng", icon: <FaStore className="text-green-500 text-3xl" />, count: 150 },
@@ -46,7 +47,13 @@ const fullData = [
 export default function AdminDashboard() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
+  const navigate = useNavigate()
+  const { userInfo } = useSelector((state) => state.user);
+  useEffect(()=>{
+    if(userInfo?.role === 'customer'){
+      navigate('/admin/profile')
+    }
+  },[userInfo,navigate])
   // Lọc dữ liệu theo ngày
   const filteredData = fullData.filter((item) => {
     const itemDate = new Date(item.date);

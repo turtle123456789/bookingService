@@ -333,7 +333,6 @@ const handlePasswordSubmit = (e) => {
                     }));
                   }}
                   className="w-full mt-1 p-2 border rounded"
-                  required
                 >
                   <option value="">Chọn tỉnh/thành phố</option>
                   ?{cityOptions?.map((city) => (
@@ -353,7 +352,6 @@ const handlePasswordSubmit = (e) => {
                     setFormData(prev => ({ ...prev, ward: "" })); // reset ward khi đổi district
                   }}
                   className="w-full mt-1 p-2 border rounded"
-                  required
                   disabled={!formData.city}
                 >
                   <option value="">Chọn quận/huyện</option>
@@ -371,7 +369,6 @@ const handlePasswordSubmit = (e) => {
                   value={formData.ward || ""}
                   onChange={handleChange}
                   className="w-full mt-1 p-2 border rounded"
-                  required
                   disabled={!formData.district}
                 >
                   <option value="">Chọn phường/xã</option>

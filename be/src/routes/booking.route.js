@@ -39,7 +39,7 @@ router.post('/',authenticateToken, async (req, res) => {
         }
       }
       const user = await db.User.findByPk(userId);
-        if (user) {
+        if (user && Array.isArray(coupons)) {
           const oldCoupons = user.listCoupon || [];
           const newCoupons = coupons.filter(
             c => !oldCoupons.some(oc => oc.code === c.code)
@@ -47,6 +47,7 @@ router.post('/',authenticateToken, async (req, res) => {
           const updatedList = [...oldCoupons, ...newCoupons];
           await user.update({ listCoupon: updatedList });
         }
+
 
     // Tạo booking mới
     const newBooking = await db.Booking.create({
