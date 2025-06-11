@@ -23,7 +23,7 @@ export default function AdminPage() {
 
   const role = userInfo?.role || "";
    useEffect(()=>{
-      if(userInfo?.role !== 'customer' || userInfo?.role !== 'admin' || userInfo?.role !== 'shop'){
+      if(userInfo?.role === null){
         navigate('/')
       }
     },[userInfo,navigate])
