@@ -1,31 +1,42 @@
 const express = require('express');
+const axios = require('axios');
 const router = express.Router();
-const db = require('../models');
-const { authenticateToken } = require('../middlewares/auth.middleware');
-router.post("/generate-vietqr",authenticateToken, async (req, res) => {
-  const { accountNo, accountName, amount, addInfo, template } = req.body;
 
+// Thay token này bằng token thật từ Casso
+const CASSO_TOKEN = 'YOUR_CASSO_OAUTH_TOKEN';
+
+// Route GET /payment?from_date=YYYY-MM-DD&to_date=YYYY-MM-DD
+router.get('/', async (req, res) => {
   try {
-    const response = await axios.post(
-      "https://api.vietqr.io/v2/generate",
-      {
-        accountNo,
-        accountName,
-        acqId: "970422", // mã ngân hàng, ví dụ MB Bank
-        amount,
-        addInfo,
-        template: template || "compact",
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const { from_date, to_date, page = 1, limit = 50 } = req.query;
 
-    res.json(response.data);
+    const response = await axios.get('https://oauth.casso.vn/v2/transactions', {
+      headers: {
+        Authorization: `Bearer ${CASSO_TOKEN}`,
+      },
+      params: {
+        from_date,
+        to_date,
+        page,
+        limit,
+        sort: 'desc'
+      },
+    });
+
+    res.status(200).json({
+      status: true,
+      message: 'Lấy danh sách thanh toán thành công',
+      data: response.data.data,
+      pagination: response.data.pagination
+    });
+
   } catch (error) {
-    res.status(500).json({ message: "Lỗi tạo mã QR", error });
+    console.error('Lỗi khi gọi API Casso:', error.response?.data || error.message);
+    res.status(500).json({
+      status: false,
+      message: 'Lỗi khi lấy danh sách thanh toán từ Casso',
+      error: error.response?.data || error.message
+    });
   }
 });
 

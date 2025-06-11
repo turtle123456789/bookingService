@@ -52,6 +52,7 @@ export const updateUserStatus = async (id, payload) => {
 };
 
 export const updateProfile = async (formData) => {
+  console.log('formData sadasd:>> ', formData);
   const response = await axiosInstance.patch('/users/me', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',

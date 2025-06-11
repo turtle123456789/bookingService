@@ -68,8 +68,8 @@ const [showOldPassword, setShowOldPassword] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-const [newAddress, setNewAddress] = useState({ city: '', district: '', ward: '' });
-
+  const [newAddress, setNewAddress] = useState({ city: '', district: '', ward: '' });
+  console.log('addresses :>> ', formData.addresses);
   useEffect(() => {
     if (userInfo) {
       setFormData({
@@ -93,7 +93,7 @@ const handleAddAddress = () => {
   if (newAddress.city && newAddress.district && newAddress.ward) {
     setFormData(prev => ({
       ...prev,
-      addresses: [...prev.addresses, newAddress],
+      addresses: [...(Array.isArray(prev.addresses) ? prev.addresses : []), newAddress],
     }));
     setNewAddress({ city: '', district: '', ward: '' }); // reset
   }
@@ -120,11 +120,14 @@ const handleSubmit = async (e) => {
     updateData.append("city", formData.city || "");
     updateData.append("district", formData.district || "");
     updateData.append("ward", formData.ward || "");
+    if (formData?.addresses?.length > 0) {
+      updateData.append("addresses", JSON.stringify(formData.addresses));
+    }
 
     if (avatarFile) {
       updateData.append("avatar", avatarFile);
     }
-
+    console.log('updateData :>> ', updateData);
     // Dispatch async action, đợi hoàn thành
     await dispatch(updateProfileThunk(updateData));
 

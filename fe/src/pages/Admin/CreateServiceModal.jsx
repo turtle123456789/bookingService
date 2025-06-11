@@ -3,6 +3,7 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 export default function CreateServiceModal({
   isOpen,
@@ -82,29 +83,33 @@ const handleImageChange = (e) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const dataToSubmit = new FormData();
-    dataToSubmit.append("name", formData.name);
-    dataToSubmit.append("subCategoryId", formData.subCategoryId);
-    if (formData.image) dataToSubmit.append("image", formData.image);
-    dataToSubmit.append("description", formData.description);
-    dataToSubmit.append("price", formData.price);
-    dataToSubmit.append("deposit", formData.deposit);
-    dataToSubmit.append("workingHours", JSON.stringify(workingHours));
-    dataToSubmit.append("coupons", JSON.stringify(coupons)); // Gửi coupons dưới dạng JSON
-
-    onCreate(dataToSubmit);
-
-    // Reset form sau submit
-    setFormData({
-      name: "",
-      subCategoryId: "",
-      image: null,
-      description: "",
-      price: "",
-      deposit: "",
-    });
-    setWorkingHours([{ day: "", from: "", to: "" }]);
-    setCoupons([{ code: "", discountPercent: "" }]);
+    if(userInfo.city){
+      const dataToSubmit = new FormData();
+      dataToSubmit.append("name", formData.name);
+      dataToSubmit.append("subCategoryId", formData.subCategoryId);
+      if (formData.image) dataToSubmit.append("image", formData.image);
+      dataToSubmit.append("description", formData.description);
+      dataToSubmit.append("price", formData.price);
+      dataToSubmit.append("deposit", formData.deposit);
+      dataToSubmit.append("workingHours", JSON.stringify(workingHours));
+      dataToSubmit.append("coupons", JSON.stringify(coupons)); // Gửi coupons dưới dạng JSON
+  
+      onCreate(dataToSubmit);
+  
+      // Reset form sau submit
+      setFormData({
+        name: "",
+        subCategoryId: "",
+        image: null,
+        description: "",
+        price: "",
+        deposit: "",
+      });
+      setWorkingHours([{ day: "", from: "", to: "" }]);
+      setCoupons([{ code: "", discountPercent: "" }]);
+    }else{
+        toast.error('Vui lòng cập nhập địa chỉ trước khi thêm dịch vụ!');
+    }
   };
 
   if (!isOpen) return null;

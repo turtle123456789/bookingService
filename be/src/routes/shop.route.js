@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
       attributes: [
         'id', 'username', 'email', 'phonenumber',
         'isActivated', 'status', 'avatar',
-        'businessLicenseFile', 'createdAt', 'isPayment'
+        'businessLicenseFile', 'createdAt', 'isPayment','addresses'
       ],
       include: [
         {

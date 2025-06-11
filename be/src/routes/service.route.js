@@ -97,7 +97,7 @@ router.get('/', async (req, res) => {
         {
           model: db.User,
           as: 'creator',
-          attributes: ['id', 'username', 'role'],
+          attributes: ['id', 'username', 'role','addresses','ward','city','district'],
           where: { role: 'shop' }, 
         },
         {

@@ -5,6 +5,7 @@ import shopReducer from './shopSlice'
 import serviceReducer from './serviceSlice'
 import bookingReducer from './bookingSlice'
 import feedbaclReducer from './feedbackSlice'
+import paymentReducer from './paymentSlice'
 const store = configureStore({
   reducer: {
     user: userReducer,
@@ -12,7 +13,8 @@ const store = configureStore({
     shops: shopReducer,
     service: serviceReducer,
     booking: bookingReducer,
-    feedback: feedbaclReducer
+    feedback: feedbaclReducer,
+    payment: paymentReducer
   },
 });
 

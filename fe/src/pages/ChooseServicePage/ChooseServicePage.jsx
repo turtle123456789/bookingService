@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { createBookingThunk } from "../../redux/bookingSlice";
 import { toast } from "react-toastify";
 import {QRCodeCanvas} from "qrcode.react";
+import PaymentPopup from "../../components/PaymentPopup/PaymentPopup";
 const ChooseServicePage = () => {
   const [step, setStep] = useState(1);
   const location = useLocation();
@@ -46,7 +47,7 @@ const [selectedCoupon, setSelectedCoupon] = useState(null);
   );
   const creatorIds = filteredList.map(category => category.creatorId);
   const matchedShops = shopList.filter(shop => creatorIds.includes(shop.id));
-
+  console.log('matchedShops :>> ', selectedServiceDetail?.creator?.addresses);
   const handleNextStep = () => {
     if (!userInfo) {
       toast.error("Vui lòng đăng nhập để tiếp tục.");
@@ -77,7 +78,7 @@ const [selectedCoupon, setSelectedCoupon] = useState(null);
         shopId: selectedShop,
         bookingDate: [{ day, from, to }],
         depositAmount:    selectedServiceDetail.price *(1 - (selectedCoupon?.discountPercent || 0) / 100) * (selectedServiceDetail.deposit / 100),
-        coupons:selectedCoupon.code
+        coupons:selectedCoupon?.code
       };
 
       setPendingBookingData(bookingData);
@@ -183,10 +184,11 @@ const confirmAndCreateBooking = (bookingData) => {
                 onChange={(e) => setSelectedShop(e.target.value)}
                 className="w-full border border-orange-400 rounded px-4 py-2 mt-1 text-gray-600"
               >
-                <option value="">Chọn cửa hàng</option>
-                {matchedShops?.map((shop, index) => (
-                  <option key={index} value={shop.id}>
-                    {shop.username}
+                <option value="">{selectedServiceDetail?.creator.city}{" "} {selectedServiceDetail?.creator.district}{""}{selectedServiceDetail?.creator?.ward}</option>
+                <option value=""></option>
+                {selectedServiceDetail?.creator?.addresses.length>0 && selectedServiceDetail?.creator?.addresses?.map((shop, index) => (
+                  <option key={index} value={shop.city + ", " + shop.ward + ", " + shop.district}>
+                    {shop.city}{" "}{shop.ward}{" "}{shop.district}
                   </option>
                 ))}
               </select>
@@ -298,68 +300,22 @@ const confirmAndCreateBooking = (bookingData) => {
             {step === 1 ? "Tiếp tục" : "Hoàn tất"}
           </button>
         </div>
-     {showPaymentPopup && pendingBookingData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md relative">
-            <button
-              onClick={() => setShowPaymentPopup(false)}
-              className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
-            >
-              ✕
-            </button>
-            <h2 className="text-xl font-bold mb-4 text-center text-green-600">
-              Xác nhận thanh toán
-            </h2>
+        <PaymentPopup
+          show={showPaymentPopup}
+          onClose={(success, bookingInfo) => {
+            setShowPaymentPopup(false);
+            if (success) {
+              setBookingInfo(bookingInfo);
+              setShowPopup(true);
+              // Reset các state khác nếu cần
+            }
+          }}
+          bookingData={pendingBookingData}
+          serviceDetail={selectedServiceDetail}
+          shop={shopList.find(s => s.id === Number(selectedShop))}
+          selectedTime={selectedTime}
+        />
 
-            <div className="text-sm text-gray-700 mb-3">
-              <p><strong>Dịch vụ:</strong> {selectedServiceDetail?.name}</p>
-              <p><strong>Cửa hàng:</strong> {shopList.find(s => s.id === Number(selectedShop))?.username}</p>
-              <p><strong>Thời gian:</strong> {pendingBookingData.bookingDate?.[0]?.day} {pendingBookingData.bookingDate?.[0]?.from}-{pendingBookingData.bookingDate?.[0]?.to}</p>
-              <p><strong>Tổng tiền:</strong> {selectedServiceDetail?.price?.toLocaleString()}đ</p>
-              <p><strong>Tiền đặt cọc:</strong> {(selectedServiceDetail?.price * (selectedServiceDetail?.deposit)/100)?.toLocaleString()}đ</p>
-            </div>
-
-            <div className="flex justify-center">
-              <QRCodeCanvas
-                value={`DICHVU:${selectedServiceDetail?.name} | SHOP:${selectedShop} | ${selectedTime}`}
-                size={160}
-              />
-            </div>
-
-            <p className="text-center text-sm mt-2 text-gray-500">
-              Quét mã QR để đặt cọc trước
-            </p>
-
-            <div className="mt-4 flex justify-center">
-              <button
-                onClick={() => {
-                  // Gọi API sau khi xác nhận thanh toán
-                  dispatch(createBookingThunk(pendingBookingData))
-                    .unwrap()
-                    .then(res => {
-                      toast.success("Bạn đã đặt dịch vụ thành công!");
-                      setBookingInfo(res);
-                      setShowPopup(true);
-                      setShowPaymentPopup(false);
-                      setPendingBookingData(null);
-                      setStep(1);
-                      setSelectedService("");
-                      setSelectedShop("");
-                      setSelectedTime("");
-                      setDropdownOpen(false);
-                    })
-                    .catch(err => {
-                      toast.error("Đặt lịch thất bại: " + err?.message || "Đã có lỗi xảy ra.");
-                    });
-                }}
-                className="bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600"
-              >
-                Tôi đã thanh toán
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       </div>
       
     </div>

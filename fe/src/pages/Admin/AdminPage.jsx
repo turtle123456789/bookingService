@@ -2,6 +2,7 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { logout } from "../../redux/userSlice";
+import { useEffect } from "react";
 
 const fullMenuItems = [
   { name: "Trang chủ", path: "/", roles: ["admin", "shop", "customer", "guest"] }, // thêm guest cho phòng ngừa
@@ -21,7 +22,11 @@ export default function AdminPage() {
   const navigate = useNavigate();
 
   const role = userInfo?.role || "";
-
+   useEffect(()=>{
+      if(userInfo?.role !== 'customer' || userInfo?.role !== 'admin' || userInfo?.role !== 'shop'){
+        navigate('/')
+      }
+    },[userInfo,navigate])
   // Lọc menu phù hợp với role
   const menuItems = fullMenuItems.filter((item) =>
     item.roles.includes(role)

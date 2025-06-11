@@ -190,14 +190,12 @@ router.patch(
       const user = await User.findByPk(userId);
       if (!user) return res.status(404).json({ error: 'Người dùng không tồn tại' });
 
-      // Kiểm tra email nếu thay đổi
       if (email && email !== user.email) {
         const existingEmail = await User.findOne({ where: { email } });
         if (existingEmail) return res.status(400).json({ error: 'Email đã được sử dụng' });
         user.email = email;
       }
 
-      // Kiểm tra số điện thoại nếu thay đổi
       if (phonenumber && phonenumber !== user.phonenumber) {
         const existingPhone = await User.findOne({ where: { phonenumber } });
         if (existingPhone) return res.status(400).json({ error: 'Số điện thoại đã được sử dụng' });
@@ -206,36 +204,55 @@ router.patch(
 
       if (username) user.username = username;
 
-      // Cập nhật địa chỉ đơn (nếu dùng cho customer)
-      if (city !== undefined) user.city = city;
-      if (district !== undefined) user.district = district;
-      if (ward !== undefined) user.ward = ward;
+      // Parse city, district, ward
+      const parseFirst = (val) => {
+        if (Array.isArray(val)) return val[0];
+        if (typeof val === 'string' && val.includes(',')) return val.split(',')[0];
+        return val;
+      };
+      const parsedCity = parseFirst(city);
+      const parsedDistrict = parseFirst(district);
+      const parsedWard = parseFirst(ward);
 
-      // Nếu là role shop, cập nhật địa chỉ dạng mảng
+      // Tạo địa chỉ mới nếu có ít nhất 1 trường
+      const hasLocationData = parsedCity || parsedDistrict || parsedWard;
+      if (hasLocationData) {
+        const newAddress = {
+          city: parsedCity || '',
+          district: parsedDistrict || '',
+          ward: parsedWard || ''
+        };
+        console.log('user.addresses :>> ', user.addresses);
+        // Nếu đã có addresses và là mảng thì unshift, ngược lại khởi tạo mảng mới
+        if (Array.isArray(user.addresses)) {
+          user.addresses.unshift(newAddress);
+        } else {
+          user.addresses = [newAddress];
+        }
+      }
+     
+      // Nếu là shop và có addresses từ client => ghi đè (ghi đè sau unshift để ưu tiên addresses client nếu có)
       if (user.role === 'shop' && addresses) {
-        let parsedAddresses;
         try {
-          parsedAddresses = typeof addresses === 'string' ? JSON.parse(addresses) : addresses;
+          const parsedAddresses = typeof addresses === 'string' ? JSON.parse(addresses) : addresses;
           if (!Array.isArray(parsedAddresses)) throw new Error();
+          user.addresses = parsedAddresses;
         } catch {
           return res.status(400).json({ error: 'Địa chỉ phải là mảng JSON hợp lệ' });
         }
-
-        user.addresses = parsedAddresses;
       }
 
-      // Nếu có file avatar mới thì upload lên Cloudinary
+      // Upload avatar nếu có
       if (req.file) {
         const result = await cloudinary.uploader.upload(req.file.path, {
           folder: 'avatars',
           resource_type: 'image',
         });
 
-        fs.unlinkSync(req.file.path); // Xoá file cục bộ sau khi upload
-
+        fs.unlinkSync(req.file.path);
         user.avatar = result.secure_url;
       }
-
+ console.log('user.addressesádsad :>> ', user.addresses);
       await user.save();
 
       res.json({
@@ -246,10 +263,10 @@ router.patch(
           phonenumber: user.phonenumber,
           username: user.username,
           avatar: user.avatar,
-          city: user.city,
-          district: user.district,
-          ward: user.ward,
-          addresses: user.role === 'shop' ? user.addresses : undefined
+          city: user.addresses?.[0]?.city || '',
+          district: user.addresses?.[0]?.district || '',
+          ward: user.addresses?.[0]?.ward || '',
+          addresses: user.addresses,
         },
       });
     } catch (err) {
@@ -257,6 +274,7 @@ router.patch(
     }
   }
 );
+
 
 
 router.patch(

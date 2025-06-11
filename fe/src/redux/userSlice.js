@@ -68,6 +68,7 @@ export const updateUserStatusThunk = createAsyncThunk(
 export const updateProfileThunk = createAsyncThunk(
   'user/updateProfile',
   async (formData, thunkAPI) => {
+    console.log('formData :>> ', formData);
     try {
       const updatedUser = await updateProfile(formData);
       return updatedUser.user; // hoặc updatedUser nếu bạn muốn trả nguyên object chứa message
