@@ -3,7 +3,7 @@ const axios = require('axios');
 const router = express.Router();
 
 // Thay token này bằng token thật từ Casso
-const CASSO_TOKEN = 'YOUR_CASSO_OAUTH_TOKEN';
+const CASSO_TOKEN = 'AK_CS.9322a630466811f0a0f57b99bc550e36.fQPr4yIbG8GXaT2qDIknn37p6t7WTOc736RGCAAc12h7HRA4XntsKSBfOeOVTQH2uMYBKdOM';
 
 // Route GET /payment?from_date=YYYY-MM-DD&to_date=YYYY-MM-DD
 router.get('/', async (req, res) => {

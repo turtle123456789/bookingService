@@ -12,11 +12,11 @@ const PaymentPopup = ({ show, onClose, bookingData, serviceDetail, shop, selecte
 
   const depositAmount = Math.floor(serviceDetail?.price * serviceDetail?.deposit / 100);
 
-  const bankId = "970415"; // Mã ngân hàng (VD: VIB)
-  const accountNo = "113366668888"; // Số tài khoản shop
-  const qrTemplate = "M69Hq44"; // Mã template QR của bạn
+  const bankId = "MB"; 
+  const accountNo = "86999904112003"; 
+  const qrTemplate = "qr_only.png"; 
   const description = encodeURIComponent(`Dat coc dich vu ${serviceDetail?.name}`);
-  const vietqrUrl = `https://api.vietqr.io/image/${bankId}-${accountNo}-${qrTemplate}.jpg?amount=${depositAmount}&addInfo=${description}`;
+  const vietqrUrl = `https://api.vietqr.io/image/${bankId}-${accountNo}-${qrTemplate}?amount=${depositAmount}&addInfo=${description}`;
 
   // Hàm kiểm tra payment phù hợp
   const isValidPayment = (payment) => {
