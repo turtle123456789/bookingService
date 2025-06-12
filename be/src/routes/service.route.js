@@ -125,4 +125,102 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: 'Lỗi server' });
   }
 });
+router.put(
+  '/:id',
+  authenticateToken,
+  authorizeRole(['shop']),
+  upload.single('image'),
+  async (req, res) => {
+    try {
+      const serviceId = req.params.id;
+      const user = req.user;
+      const {
+        name,
+        subCategoryId,
+        description,
+        price,
+        deposit,
+        workingHours,
+        coupons
+      } = req.body;
+
+      const service = await db.Service.findOne({
+        where: { id: serviceId, creatorId: user.id }
+      });
+
+      if (!service) {
+        return res.status(404).json({ message: 'Dịch vụ không tồn tại hoặc bạn không có quyền chỉnh sửa' });
+      }
+
+      let imageUrl = service.image;
+      if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'service_images',
+          resource_type: 'image'
+        });
+        fs.unlinkSync(req.file.path);
+        imageUrl = result.secure_url;
+      }
+
+      const parsedWorkingHours = workingHours
+        ? typeof workingHours === 'string' ? JSON.parse(workingHours) : workingHours
+        : service.workingHours;
+
+      const parsedCoupons = coupons
+        ? typeof coupons === 'string' ? JSON.parse(coupons) : coupons
+        : service.coupons;
+
+      await service.update({
+        name: name || service.name,
+        subCategoryId: subCategoryId || service.subCategoryId,
+        image: imageUrl,
+        description: description || service.description,
+        price: price !== undefined ? parseFloat(price) : service.price,
+        deposit: deposit !== undefined ? parseFloat(deposit) : service.deposit,
+        workingHours: parsedWorkingHours,
+        coupons: parsedCoupons
+      });
+
+      res.status(200).json({
+        message: 'Cập nhật dịch vụ thành công',
+        service
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Lỗi server', error: error.message });
+    }
+  }
+);
+router.delete(
+  '/:id',
+  authenticateToken,
+  authorizeRole(['shop']),
+  async (req, res) => {
+    try {
+      const serviceId = req.params.id;
+      const user = req.user;
+      const relatedBookings = await db.Booking.findAll({
+        where: { serviceId }
+      });
+      if (relatedBookings.length > 0) {
+        return res.status(400).json({ message: "Không thể xóa dịch vụ đang được đặt!" });
+      }
+      const service = await db.Service.findOne({
+        where: { id: serviceId, creatorId: user.id }
+      });
+
+      if (!service) {
+        return res.status(404).json({ message: 'Dịch vụ không tồn tại hoặc bạn không có quyền xóa' });
+      }
+
+      await service.destroy();
+
+      res.status(200).json({ message: 'Xóa dịch vụ thành công' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Lỗi server', error: error.message });
+    }
+  }
+);
+
 module.exports = router;

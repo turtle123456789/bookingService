@@ -13,7 +13,6 @@ const ChooseServicePage = () => {
   const location = useLocation();
   const { serviceId } = location.state || {};
   const [selectedService, setSelectedService] = useState("");
-  const [selectedShop, setSelectedShop] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 const [selectedCoupon, setSelectedCoupon] = useState(null);
@@ -61,10 +60,6 @@ const [selectedCoupon, setSelectedCoupon] = useState(null);
       }
       setStep(2);
     } else if (step === 2) {
-      if (!selectedShop) {
-        toast.warning("Vui lòng chọn cửa hàng.");
-        return;
-      }
       if (!selectedTime) {
         toast.warning("Vui lòng chọn thời gian.");
         return;
@@ -75,7 +70,7 @@ const [selectedCoupon, setSelectedCoupon] = useState(null);
 
       const bookingData = {
         serviceId: selectedService,
-        shopId: selectedShop,
+        shopId: selectedServiceDetail.creator.id,
         bookingDate: [{ day, from, to }],
         depositAmount:    selectedServiceDetail.price *(1 - (selectedCoupon?.discountPercent || 0) / 100) * (selectedServiceDetail.deposit / 100),
         coupons:selectedCoupon?.code
@@ -95,7 +90,6 @@ const confirmAndCreateBooking = (bookingData) => {
       setShowPopup(true);
       setStep(1);
       setSelectedService("");
-      setSelectedShop("");
       setSelectedTime("");
       setDropdownOpen(false);
       setShowPaymentPopup(false);
@@ -174,25 +168,8 @@ const confirmAndCreateBooking = (bookingData) => {
         {step === 2 && (
           <>
             <h2 className="text-2xl font-semibold text-center text-orange-500 mb-6">
-              Chọn cửa hàng và thời gian phù hợp
+              Chọn thời gian phù hợp
             </h2>
-
-            <label className="block mb-3">
-              <span className="text-gray-700 font-medium">Chọn cửa hàng:</span>
-              <select
-                value={selectedShop}
-                onChange={(e) => setSelectedShop(e.target.value)}
-                className="w-full border border-orange-400 rounded px-4 py-2 mt-1 text-gray-600"
-              >
-                <option value="">{selectedServiceDetail?.creator.city}{" "} {selectedServiceDetail?.creator.district}{""}{selectedServiceDetail?.creator?.ward}</option>
-                <option value=""></option>
-                {selectedServiceDetail?.creator?.addresses.length>0 && selectedServiceDetail?.creator?.addresses?.map((shop, index) => (
-                  <option key={index} value={shop.city + ", " + shop.ward + ", " + shop.district}>
-                    {shop.city}{" "}{shop.ward}{" "}{shop.district}
-                  </option>
-                ))}
-              </select>
-            </label>
 
             <label className="block mb-3">
               <span className="text-gray-700 font-medium">Chọn thời gian:</span>
@@ -312,7 +289,6 @@ const confirmAndCreateBooking = (bookingData) => {
           }}
           bookingData={pendingBookingData}
           serviceDetail={selectedServiceDetail}
-          shop={shopList.find(s => s.id === Number(selectedShop))}
           selectedTime={selectedTime}
         />
 

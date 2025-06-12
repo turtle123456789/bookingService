@@ -13,3 +13,17 @@ export const fetchServicesApi = async (serviceData) => {
   return response.data;
 };
 
+export const updateServiceApi = async (id, serviceData) => {
+  const response = await axiosInstance.put(`/services/${id}`, serviceData,{
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+  return response.data;
+};
+
+// Xóa dịch vụ
+export const deleteServiceApi = async (id) => {
+  const response = await axiosInstance.delete(`/services/${id}`);
+  return response.data;
+};

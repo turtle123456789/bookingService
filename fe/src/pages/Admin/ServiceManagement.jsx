@@ -3,8 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchShopsThunk } from "../../redux/shopSlice";
 import { getCategories } from "../../redux/categorySlice";
 import CreateServiceModal from "./CreateServiceModal";
-import { createServiceThunk, fetchServicesThunk } from "../../redux/serviceSlice";
+import { createServiceThunk, deleteServiceThunk, fetchServicesThunk, updateServiceThunk } from "../../redux/serviceSlice";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const PAGE_SIZE = 10;
 
@@ -13,6 +14,8 @@ export default function ServiceManagement() {
   const [selectedShop, setSelectedShop] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [page, setPage] = useState(1);
+  const [selectedService, setSelectedService] = useState(null);
+
   const [services, setServices] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { userInfo } = useSelector((state) => state.user);
@@ -81,14 +84,35 @@ const filteredServices = useMemo(() => {
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE
   );
-
-  const handleEdit = (id) => {
-    alert("Chỉnh sửa dịch vụ id: " + id);
+const handleUpdate = (newService) => {
+    dispatch(updateServiceThunk({ id: selectedService.id, data: newService }))
+      .unwrap()
+      .then((updatedService) => {
+        dispatch(fetchServicesThunk());
+        toast.success('Dịch vụ đã được cập nhật:', updatedService);
+      })
+      .catch((error) => {
+        toast.error('Lỗi khi cập nhật dịch vụ:', error);
+      });
   };
 
-  const handleDelete = (id) => {
-    setServices((prev) => prev.filter((s) => s?.id !== id));
-  };
+const handleEdit = (id) => {
+  const serviceToEdit = services.find((s) => s.id === id);
+  if (serviceToEdit) {
+    setSelectedService(serviceToEdit);
+    setIsModalOpen(true);
+  }
+};
+const handleDelete = async (serviceId) => {
+  if (window.confirm("Bạn có chắc chắn muốn xóa dịch vụ này không?")) {
+    const res = await dispatch(deleteServiceThunk(serviceId));
+    if (deleteServiceThunk.rejected.match(res)) {
+      toast.error(`${res.payload.message}`);
+    } else {
+      toast.success("Xóa thành công!");
+    }
+  }
+};
 
   const handleCreate = (newService) => {
     dispatch(createServiceThunk(newService));
@@ -166,7 +190,9 @@ const filteredServices = useMemo(() => {
               <th className="px-6 py-3">Hình ảnh</th>
               <th className="px-6 py-3">Cửa hàng</th>
               <th className="px-6 py-3">Danh mục</th>
-              <th className="px-6 py-3">Hành động</th>
+               {userInfo?.role === "shop" &&(
+                 <th className="px-6 py-3">Hành động</th>
+               )}
             </tr>
           </thead>
           <tbody>
@@ -198,20 +224,24 @@ const filteredServices = useMemo(() => {
                 <td className="px-6 py-3">
                   {allSubCategories?.find((cat) => cat.id === s?.subCategoryId)?.name || "N/A"}
                 </td>
-                <td className="px-6 py-3 space-x-3">
-                  <button
-                    onClick={() => handleEdit(s?.id)}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Sửa
-                  </button>
-                  <button
-                    onClick={() => handleDelete(s?.id)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Xóa
-                  </button>
-                </td>
+                {userInfo?.role === "shop" &&(
+                  <td className="px-6 py-3 space-x-3">
+                    <button
+                      onClick={() => handleEdit(s?.id)}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      onClick={() => handleDelete(s?.id)}
+                      className="text-red-600 hover:underline"
+                    >
+                      Xóa
+                    </button>
+                  </td>
+                )
+                
+                }
               </tr>
             ))}
           </tbody>
@@ -241,10 +271,12 @@ const filteredServices = useMemo(() => {
           <CreateServiceModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            onCreate={handleCreate}
+            onCreate={selectedService !== null ? handleUpdate : handleCreate}
             subCategoryOptions={allSubCategories}
             loading={loading}
             error={error}
+            initialData={selectedService || null}
+
           />
 
         )}

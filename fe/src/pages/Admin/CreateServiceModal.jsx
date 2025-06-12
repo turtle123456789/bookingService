@@ -11,6 +11,7 @@ export default function CreateServiceModal({
   loading,
   onCreate,
   subCategoryOptions = [],
+  initialData = null, 
 }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -80,6 +81,21 @@ const handleImageChange = (e) => {
     updated.splice(index, 1);
     setCoupons(updated);
   };
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name || "",
+        subCategoryId: initialData.subCategoryId || "",
+        image: null,
+        description: initialData.description || "",
+        price: initialData.price || "",
+        deposit: initialData.deposit || "",
+        imagePreview: initialData.image || null,
+      });
+      setWorkingHours(initialData.workingHours || [{ day: "", from: "", to: "" }]);
+      setCoupons(initialData.coupons || [{ code: "", discountPercent: "" }]);
+    }
+  }, [initialData]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -96,17 +112,21 @@ const handleImageChange = (e) => {
   
       onCreate(dataToSubmit);
   
-      // Reset form sau submit
-      setFormData({
-        name: "",
-        subCategoryId: "",
-        image: null,
-        description: "",
-        price: "",
-        deposit: "",
-      });
-      setWorkingHours([{ day: "", from: "", to: "" }]);
-      setCoupons([{ code: "", discountPercent: "" }]);
+        if (!initialData?._id) {
+          setFormData({
+            name: "",
+            subCategoryId: "",
+            image: null,
+            description: "",
+            price: "",
+            deposit: "",
+            imagePreview: null,
+          });
+          setWorkingHours([{ day: "", from: "", to: "" }]);
+          setCoupons([{ code: "", discountPercent: "" }]);
+        }
+
+        onClose();
     }else{
         toast.error('Vui lòng cập nhập địa chỉ trước khi thêm dịch vụ!');
     }
@@ -340,7 +360,7 @@ const handleImageChange = (e) => {
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               disabled={loading}
             >
-              {loading ? "Đang tạo..." : "Tạo dịch vụ"}
+              {loading ? "Đang tạo..." : initialData === null ? "Tạo dịch vụ" : "Cập nhập dịch vụ"}
             </button>
           </div>
         </form>
