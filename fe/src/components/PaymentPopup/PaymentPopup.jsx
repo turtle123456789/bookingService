@@ -54,7 +54,7 @@ const PaymentPopup = ({ show, onClose, bookingData, serviceDetail, shop, selecte
       } catch (err) {
         console.error('Polling error:', err);
       }
-    }, 1000); // 1s 1 lần
+    }, 10000); // 1s 1 lần
   };
 
   // Bắt đầu đếm giờ và polling khi show

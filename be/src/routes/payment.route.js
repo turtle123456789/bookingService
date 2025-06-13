@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
 
     const response = await axios.get('https://oauth.casso.vn/v2/transactions', {
       headers: {
-        Authorization: `Bearer ${CASSO_TOKEN}`,
+        Authorization: `Apikey ${CASSO_TOKEN}`,
       },
       params: {
         from_date,
