@@ -175,7 +175,12 @@ router.put(
 
       // Thêm mới sub category nếu có truyền lên
       if (req.body.subCategories) {
-        const newSubCats = JSON.parse(req.body.subCategories);
+        let newSubCats = [];
+        try {
+          newSubCats = JSON.parse(req.body.subCategories);
+        } catch (err) {
+          newSubCats = [];
+        }
 
         const existingSubs = await db.SubCategory.findAll({
           where: { categoryId: category.id },
@@ -183,28 +188,30 @@ router.put(
         });
         const existingSubNames = existingSubs.map(s => s.name);
 
-        const toCreate = [];
         const subImagesFiles = req.files['subImages'] || [];
+        const toCreate = [];
 
         for (let i = 0; i < newSubCats.length; i++) {
           const sub = newSubCats[i];
-          if (!existingSubNames.includes(sub.name)) {
-            let subImageUrl = null;
-            if (subImagesFiles[i]) {
-              const subResult = await cloudinary.uploader.upload(subImagesFiles[i].path, {
-                folder: 'subcategories',
-                resource_type: 'auto'
-              });
-              fs.unlinkSync(subImagesFiles[i].path);
-              subImageUrl = subResult.secure_url;
-            }
+          if (!sub || !sub.name || existingSubNames.includes(sub.name)) continue;
 
-            toCreate.push({
-              name: sub.name,
-              categoryId: category.id,
-              subImages: subImageUrl,
+          let subImageUrl = null;
+          if (subImagesFiles[i]) {
+            const uploadRes = await cloudinary.uploader.upload(subImagesFiles[i].path, {
+              folder: 'subcategories',
+              resource_type: 'auto'
             });
+            if (fs.existsSync(subImagesFiles[i].path)) {
+              fs.unlinkSync(subImagesFiles[i].path);
+            }
+            subImageUrl = uploadRes.secure_url;
           }
+
+          toCreate.push({
+            name: sub.name,
+            categoryId: category.id,
+            subImages: subImageUrl,
+          });
         }
 
         if (toCreate.length > 0) {

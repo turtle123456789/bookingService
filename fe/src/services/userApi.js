@@ -1,5 +1,5 @@
 // src/api/userApi.js
-
+import axios from 'axios';
 import axiosInstance from "./axiosInstance";
 export const getUsers = async () => {
   const response = await axiosInstance.get('/users');
@@ -62,5 +62,11 @@ export const updateProfile = async (formData) => {
 };
 export const updatePassword = async ({ oldPassword, newPassword }) => {
   const response = await axiosInstance.patch('/users/me/password', { oldPassword, newPassword });
-  return response.data; 
+  return response.data;
+};
+
+export const refreshTokenApi = async () => {
+  const refreshToken = localStorage.getItem('refreshToken');
+  const response = await axios.post(`${process.env.REACT_APP_API_URL}/users/refresh-token`, { refreshToken });
+  return response.data;
 };
