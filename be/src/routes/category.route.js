@@ -134,6 +134,151 @@ router.get('/', authenticateToken, authorizeRole(['shop']), async (req, res) => 
     res.status(500).json({ message: 'Lỗi khi lấy danh sách danh mục' });
   }
 });
+
+// Cập nhật category
+router.put(
+  '/:categoryId',
+  authenticateToken,
+  authorizeRole(['shop']),
+  upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'subImages', maxCount: 10 },
+  ]),
+  async (req, res) => {
+    const { categoryId } = req.params;
+    const userId = req.user.id;
+
+    try {
+      const category = await db.Category.findOne({
+        where: { id: categoryId, creatorId: userId },
+        include: [{ model: db.SubCategory, as: 'subCategories' }],
+      });
+
+      if (!category) {
+        return res.status(404).json({ message: 'Danh mục không tồn tại hoặc không có quyền' });
+      }
+
+      let imageUrl = category.image;
+      if (req.files['image'] && req.files['image'][0]) {
+        const result = await cloudinary.uploader.upload(req.files['image'][0].path, {
+          folder: 'categories',
+          resource_type: 'auto'
+        });
+        fs.unlinkSync(req.files['image'][0].path);
+        imageUrl = result.secure_url;
+      }
+
+      await category.update({
+        name: req.body.name || category.name,
+        image: imageUrl
+      });
+
+      // Thêm mới sub category nếu có truyền lên
+      if (req.body.subCategories) {
+        let newSubCats = [];
+        try {
+          newSubCats = JSON.parse(req.body.subCategories);
+        } catch (err) {
+          newSubCats = [];
+        }
+
+        const existingSubs = await db.SubCategory.findAll({
+          where: { categoryId: category.id },
+          attributes: ['name'],
+        });
+        const existingSubNames = existingSubs.map(s => s.name);
+
+        const subImagesFiles = req.files['subImages'] || [];
+        const toCreate = [];
+
+        for (let i = 0; i < newSubCats.length; i++) {
+          const sub = newSubCats[i];
+          if (!sub || !sub.name || existingSubNames.includes(sub.name)) continue;
+
+          let subImageUrl = null;
+          if (subImagesFiles[i]) {
+            const uploadRes = await cloudinary.uploader.upload(subImagesFiles[i].path, {
+              folder: 'subcategories',
+              resource_type: 'auto'
+            });
+            if (fs.existsSync(subImagesFiles[i].path)) {
+              fs.unlinkSync(subImagesFiles[i].path);
+            }
+            subImageUrl = uploadRes.secure_url;
+          }
+
+          toCreate.push({
+            name: sub.name,
+            categoryId: category.id,
+            subImages: subImageUrl,
+          });
+        }
+
+        if (toCreate.length > 0) {
+          await db.SubCategory.bulkCreate(toCreate);
+        }
+      }
+
+      // Lấy lại category kèm subCategories
+      const updatedCategory = await db.Category.findByPk(category.id, {
+        include: [{ model: db.SubCategory, as: 'subCategories' }],
+      });
+
+      return res.status(200).json({ message: 'Cập nhật danh mục thành công', category: updatedCategory });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Lỗi khi cập nhật danh mục' });
+    }
+  }
+);
+
+// Cập nhật sub category
+router.put(
+  '/sub/:subCategoryId',
+  authenticateToken,
+  authorizeRole(['shop']),
+  upload.single('image'),
+  async (req, res) => {
+    const { subCategoryId } = req.params;
+    const userId = req.user.id;
+
+    try {
+      const subCategory = await db.SubCategory.findOne({
+        where: { id: subCategoryId },
+        include: {
+          model: db.Category,
+          as: 'category',
+          where: { creatorId: userId }
+        }
+      });
+
+      if (!subCategory) {
+        return res.status(404).json({ message: 'Danh mục con không tồn tại hoặc không có quyền' });
+      }
+
+      let imageUrl = subCategory.subImages;
+      if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'subcategories',
+          resource_type: 'auto'
+        });
+        fs.unlinkSync(req.file.path);
+        imageUrl = result.secure_url;
+      }
+
+      await subCategory.update({
+        name: req.body.name || subCategory.name,
+        subImages: imageUrl
+      });
+
+      return res.status(200).json({ message: 'Cập nhật danh mục con thành công', subCategory });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Lỗi khi cập nhật danh mục con' });
+    }
+  }
+);
+
 router.delete('/:categoryId', authenticateToken, authorizeRole(['shop']), async (req, res) => {
   const { categoryId } = req.params;
   const userId = req.user.id;
