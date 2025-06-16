@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CreateCategoryForm from "./CreateCategoryForm";
+import EditCategoryForm from "./EditCategoryForm";
 import { useDispatch, useSelector } from "react-redux";
 import { getCategories, deleteCategoryThunk, deleteSubCategoryThunk } from "../../redux/categorySlice";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +14,7 @@ export default function CategoryManagement() {
 
   // Thêm state confirm xóa
   const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null, isSub: false });
+  const [editItem, setEditItem] = useState({ show: false, data: null, isSub: false });
 
   const dispatch = useDispatch();
   const { list, loading, error } = useSelector(state => state.category);
@@ -46,9 +48,18 @@ export default function CategoryManagement() {
     setShowPopup(false);
   };
 
+  const handleUpdated = () => {
+    dispatch(getCategories());
+    setEditItem({ show: false, data: null, isSub: false });
+  };
+
   // Xử lý mở popup confirm xóa
   const handleDeleteClick = (id, isSub = false) => {
     setConfirmDelete({ show: true, id, isSub });
+  };
+
+  const handleEditClick = (item, isSub = false) => {
+    setEditItem({ show: true, data: item, isSub });
   };
 
   // Xác nhận xóa
@@ -135,7 +146,7 @@ export default function CategoryManagement() {
                     />
                   </td>
                   <td className="px-6 py-3 space-x-3">
-                    <button className="text-blue-600 hover:underline">Sửa</button>
+                    <button onClick={() => handleEditClick(cat, false)} className="text-blue-600 hover:underline">Sửa</button>
                     <button
                       onClick={() => handleDeleteClick(cat.id, false)}
                       className="text-red-600 hover:underline"
@@ -164,7 +175,7 @@ export default function CategoryManagement() {
                         />
                       </td>
                       <td className="px-6 py-3 space-x-3">
-                        <button className="text-blue-600 hover:underline">Sửa</button>
+                        <button onClick={() => handleEditClick(sub, true)} className="text-blue-600 hover:underline">Sửa</button>
                         <button
                           onClick={() => handleDeleteClick(sub.id, true)}
                           className="text-red-600 hover:underline"
@@ -211,6 +222,20 @@ export default function CategoryManagement() {
           </div>
         </div>
       )}
+
+      {editItem.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded shadow-lg max-w-2xl w-full p-6 relative">
+            <EditCategoryForm
+              data={editItem.data}
+              isSub={editItem.isSub}
+              onClose={() => setEditItem({ show: false, data: null, isSub: false })}
+              onUpdated={handleUpdated}
+            />
+          </div>
+        </div>
+      )}
+
 
       {/* Popup confirm xóa */}
       {confirmDelete.show && (

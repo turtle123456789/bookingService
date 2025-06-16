@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { createCategory } from '../services/categoryApi';
+import { createCategory, updateCategory, updateSubCategory } from '../services/categoryApi';
 import axiosInstance from '../services/axiosInstance';
 
 // Async thunk tạo danh mục
@@ -46,6 +46,30 @@ export const deleteSubCategoryThunk = createAsyncThunk(
       return { subCategoryId };
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.message || 'Xóa danh mục con thất bại');
+    }
+  }
+);
+
+export const updateCategoryThunk = createAsyncThunk(
+  'category/updateCategory',
+  async ({ id, data }, thunkAPI) => {
+    try {
+      const res = await updateCategory(id, data);
+      return res.category;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || 'Cập nhật danh mục thất bại');
+    }
+  }
+);
+
+export const updateSubCategoryThunk = createAsyncThunk(
+  'category/updateSubCategory',
+  async ({ id, data }, thunkAPI) => {
+    try {
+      const res = await updateSubCategory(id, data);
+      return res.subCategory;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || 'Cập nhật danh mục con thất bại');
     }
   }
 );
@@ -122,14 +146,53 @@ const categorySlice = createSlice({
         subCategories: cat.subCategories.filter(sub => sub.id !== action.payload.subCategoryId)
       }));
     })
-    .addCase(deleteSubCategoryThunk.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.payload;
-    })
-        .addCase(getPublicCategories.pending, (state) => {
-      state.loading = true;
-      state.error = null;
-    })
+      .addCase(deleteSubCategoryThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Cập nhật category
+      .addCase(updateCategoryThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateCategoryThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.list = state.list.map(cat => cat.id === action.payload.id ? {
+          ...cat,
+          ...action.payload
+        } : cat);
+      })
+      .addCase(updateCategoryThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Cập nhật sub category
+      .addCase(updateSubCategoryThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateSubCategoryThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.list = state.list.map(cat => {
+          if (cat.id === action.payload.categoryId) {
+            return {
+              ...cat,
+              subCategories: cat.subCategories.map(sub =>
+                sub.id === action.payload.id ? action.payload : sub
+              )
+            };
+          }
+          return cat;
+        });
+      })
+      .addCase(updateSubCategoryThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getPublicCategories.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
     .addCase(getPublicCategories.fulfilled, (state, action) => {
       state.loading = false;
       state.list = action.payload;
