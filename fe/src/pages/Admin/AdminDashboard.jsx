@@ -48,7 +48,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.user);
   useEffect(()=>{
-    if(userInfo?.role === 'customer'){
+    if(userInfo?.role === 'customer' || userInfo?.role === 'shop'){
       navigate('/admin/profile')
     }
   },[userInfo,navigate])

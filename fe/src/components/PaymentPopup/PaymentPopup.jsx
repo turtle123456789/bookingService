@@ -9,7 +9,7 @@ const PaymentPopup = ({ show, onClose, bookingData, serviceDetail, shop, selecte
   const [countdown, setCountdown] = useState(180); // 3 phút
   const intervalRef = useRef(null);
   const pollingRef = useRef(null);
-
+  console.log('bookingData :>> ', bookingData);
   const depositAmount = Math.floor(serviceDetail?.price * serviceDetail?.deposit / 100);
 
   const bankId = "MB"; 

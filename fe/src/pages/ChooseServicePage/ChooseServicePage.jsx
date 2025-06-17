@@ -6,8 +6,8 @@ import { fetchServicesThunk } from "../../redux/serviceSlice";
 import { useLocation, useNavigate } from "react-router-dom";
 import { createBookingThunk } from "../../redux/bookingSlice";
 import { toast } from "react-toastify";
-import {QRCodeCanvas} from "qrcode.react";
 import PaymentPopup from "../../components/PaymentPopup/PaymentPopup";
+
 const ChooseServicePage = () => {
   const [step, setStep] = useState(1);
   const location = useLocation();
@@ -15,7 +15,7 @@ const ChooseServicePage = () => {
   const [selectedService, setSelectedService] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-const [selectedCoupon, setSelectedCoupon] = useState(null);
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { list } = useSelector(state => state.category);
@@ -46,7 +46,7 @@ const [selectedCoupon, setSelectedCoupon] = useState(null);
   );
   const creatorIds = filteredList.map(category => category.creatorId);
   const matchedShops = shopList.filter(shop => creatorIds.includes(shop.id));
-  console.log('matchedShops :>> ', selectedServiceDetail?.creator?.addresses);
+
   const handleNextStep = () => {
     if (!userInfo) {
       toast.error("Vui lòng đăng nhập để tiếp tục.");
@@ -65,6 +65,12 @@ const [selectedCoupon, setSelectedCoupon] = useState(null);
         return;
       }
 
+      const rawPrice = Number(selectedServiceDetail?.price || 0);
+      const depositPercent = Math.min(Number(selectedServiceDetail?.deposit || 0), 100);
+      const discountPercent = Number(selectedCoupon?.discountPercent || 0);
+      const finalPrice = rawPrice * (1 - discountPercent / 100);
+      const depositAmount = finalPrice * (depositPercent / 100);
+
       const [from, to] = selectedTime.split("-");
       const day = selectedServiceDetail?.workingHours?.find(t => `${t.from}-${t.to}` === selectedTime)?.day || "Unknown";
 
@@ -72,32 +78,32 @@ const [selectedCoupon, setSelectedCoupon] = useState(null);
         serviceId: selectedService,
         shopId: selectedServiceDetail.creator.id,
         bookingDate: [{ day, from, to }],
-        depositAmount:    selectedServiceDetail.price *(1 - (selectedCoupon?.discountPercent || 0) / 100) * (selectedServiceDetail.deposit / 100),
-        coupons:selectedCoupon?.code
+        depositAmount,
+        coupons: selectedCoupon?.code || null,
       };
 
       setPendingBookingData(bookingData);
       setShowPaymentPopup(true);
-
     }
   };
-const confirmAndCreateBooking = (bookingData) => {
-  dispatch(createBookingThunk(bookingData))
-    .unwrap()
-    .then((res) => {
-      toast.success("Bạn đã đặt dịch vụ thành công!");
-      setBookingInfo(res);
-      setShowPopup(true);
-      setStep(1);
-      setSelectedService("");
-      setSelectedTime("");
-      setDropdownOpen(false);
-      setShowPaymentPopup(false);
-    })
-    .catch((error) => {
-      toast.error("Đặt lịch thất bại: " + error?.message || "Đã có lỗi xảy ra.");
-    });
-};
+
+  const confirmAndCreateBooking = (bookingData) => {
+    dispatch(createBookingThunk(bookingData))
+      .unwrap()
+      .then((res) => {
+        toast.success("Bạn đã đặt dịch vụ thành công!");
+        setBookingInfo(res);
+        setShowPopup(true);
+        setStep(1);
+        setSelectedService("");
+        setSelectedTime("");
+        setDropdownOpen(false);
+        setShowPaymentPopup(false);
+      })
+      .catch((error) => {
+        toast.error("Đặt lịch thất bại: " + error?.message || "Đã có lỗi xảy ra.");
+      });
+  };
 
   const handleBackStep = () => {
     if (step > 1) setStep(step - 1);
@@ -105,7 +111,6 @@ const confirmAndCreateBooking = (bookingData) => {
 
   return (
     <div className="min-h-[500px] my-16 bg-white flex flex-col items-center justify-center px-4">
-      {/* Progress Stepper */}
       <div className="flex items-center mb-10">
         <div className={`flex items-center relative ${step === 1 ? "text-white" : "text-gray-400"}`}>
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step === 1 ? "bg-blue-600" : "bg-gray-200"}`}>
@@ -122,14 +127,12 @@ const confirmAndCreateBooking = (bookingData) => {
         </div>
       </div>
 
-      {/* Nội dung */}
       <div className="bg-gray-50 p-8 rounded shadow-md w-full max-w-xl">
         {step === 1 && (
           <>
             <h2 className="text-2xl font-semibold text-center text-orange-500 mb-6">
               Tất cả các dịch vụ tiện ích của URGENT
             </h2>
-
             <div className="relative w-full">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -165,7 +168,7 @@ const confirmAndCreateBooking = (bookingData) => {
           </>
         )}
 
-        {step === 2 && (
+        {step === 2 && selectedServiceDetail && (
           <>
             <h2 className="text-2xl font-semibold text-center text-orange-500 mb-6">
               Chọn thời gian phù hợp
@@ -186,78 +189,80 @@ const confirmAndCreateBooking = (bookingData) => {
                 ))}
               </select>
             </label>
-              {selectedServiceDetail?.coupons?.length > 0 && (
-                <div className="mb-4">
-                  <span className="text-gray-700 font-medium">Chọn mã giảm giá (nếu có):</span>
-                  <div className="mt-2 space-y-2">
-                    {selectedServiceDetail.coupons.map((coupon) => (
-                      <label
-                        key={coupon.code}
-                        className="flex items-center space-x-2 border p-2 rounded hover:bg-orange-50 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="coupon"
-                          value={coupon.code}
-                          checked={selectedCoupon?.code === coupon.code}
-                          onChange={() =>
-                            setSelectedCoupon({
-                              code: coupon.code,
-                              discountPercent: coupon.discountPercent,
-                            })
-                          }
-                        />
-                        <div>
-                          <p className="font-semibold">{coupon.code}</p>
-                          <p className="text-sm text-green-600">
-                            Giảm giá: {coupon.discountPercent}%
-                          </p>
-                        </div>
-                      </label>
-                    ))}
-                    <label className="flex items-center space-x-2 border p-2 rounded hover:bg-orange-50">
+
+            {selectedServiceDetail?.coupons?.length > 0 && (
+              <div className="mb-4">
+                <span className="text-gray-700 font-medium">Chọn mã giảm giá (nếu có):</span>
+                <div className="mt-2 space-y-2">
+                  {selectedServiceDetail.coupons.map((coupon) => (
+                    <label
+                      key={coupon.code}
+                      className="flex items-center space-x-2 border p-2 rounded hover:bg-orange-50 cursor-pointer"
+                    >
                       <input
                         type="radio"
                         name="coupon"
-                        value=""
-                        checked={selectedCoupon === null}
-                        onChange={() => setSelectedCoupon(null)}
+                        value={coupon.code}
+                        checked={selectedCoupon?.code === coupon.code}
+                        onChange={() =>
+                          setSelectedCoupon({
+                            code: coupon.code,
+                            discountPercent: Number(coupon.discountPercent),
+                          })
+                        }
                       />
-                      <span>Không chọn mã giảm giá</span>
-                    </label>
-                    {selectedServiceDetail && (
-                      <div className="mt-6 p-4 border rounded-lg bg-gray-50">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                          Thông tin thanh toán
-                        </h3>
-
-                        {/* Tính giá sau giảm */}
-                        <div className="flex justify-between text-gray-700">
-                          <span>Tổng tiền:</span>
-                          <span className="font-medium text-blue-600">
-                            {(
-                              selectedServiceDetail.price *
-                              (1 - (selectedCoupon?.discountPercent || 0) / 100)
-                            ).toLocaleString()}₫
-                          </span>
-                        </div>
-
-                        {/* Tính tiền cọc */}
-                        <div className="flex justify-between text-gray-700 mt-1">
-                          <span>Tiền phải đặt cọc:</span>
-                          <span className="font-medium text-orange-600">
-                            {(
-                              selectedServiceDetail.price *
-                              (1 - (selectedCoupon?.discountPercent || 0) / 100) *
-                              (selectedServiceDetail.deposit / 100)
-                            ).toLocaleString()}₫
-                          </span>
-                        </div>
+                      <div>
+                        <p className="font-semibold">{coupon.code}</p>
+                        <p className="text-sm text-green-600">
+                          Giảm giá: {coupon.discountPercent}%
+                        </p>
                       </div>
-                    )}
-                  </div>
+                    </label>
+                  ))}
+                  <label className="flex items-center space-x-2 border p-2 rounded hover:bg-orange-50">
+                    <input
+                      type="radio"
+                      name="coupon"
+                      value=""
+                      checked={selectedCoupon === null}
+                      onChange={() => setSelectedCoupon(null)}
+                    />
+                    <span>Không chọn mã giảm giá</span>
+                  </label>
                 </div>
-      )}
+              </div>
+            )}
+
+            <div className="mt-6 p-4 border rounded-lg bg-gray-50">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                Thông tin thanh toán
+              </h3>
+
+              {(() => {
+                const rawPrice = Number(selectedServiceDetail?.price || 0);
+                const depositPercent = Math.min(Number(selectedServiceDetail?.deposit || 0), 100);
+                const discountPercent = Number(selectedCoupon?.discountPercent || 0);
+                const totalAfterDiscount = rawPrice * (1 - discountPercent / 100);
+                const depositAmount = totalAfterDiscount * (depositPercent / 100);
+
+                return (
+                  <>
+                    <div className="flex justify-between text-gray-700">
+                      <span>Tổng tiền:</span>
+                      <span className="font-medium text-blue-600">
+                        {totalAfterDiscount.toLocaleString()}₫
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-gray-700 mt-1">
+                      <span>Tiền phải đặt cọc:</span>
+                      <span className="font-medium text-orange-600">
+                        {depositAmount.toLocaleString()}₫
+                      </span>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
           </>
         )}
 
@@ -277,6 +282,7 @@ const confirmAndCreateBooking = (bookingData) => {
             {step === 1 ? "Tiếp tục" : "Hoàn tất"}
           </button>
         </div>
+
         <PaymentPopup
           show={showPaymentPopup}
           onClose={(success, bookingInfo) => {
@@ -284,19 +290,15 @@ const confirmAndCreateBooking = (bookingData) => {
             if (success) {
               setBookingInfo(bookingInfo);
               setShowPopup(true);
-              // Reset các state khác nếu cần
             }
           }}
           bookingData={pendingBookingData}
           serviceDetail={selectedServiceDetail}
           selectedTime={selectedTime}
         />
-
       </div>
-      
     </div>
   );
 };
-
 
 export default ChooseServicePage;

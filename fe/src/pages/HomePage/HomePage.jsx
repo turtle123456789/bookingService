@@ -2,6 +2,7 @@ import React from 'react'
 import { bg1, bg2, bg3, bg4, bg5, bg6, category1 } from '../../units/importImg'
 import { ServiceFeatures, ServiceSteps, SlideService } from '../../components'
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
   const { list } = useSelector(state => state.category);
@@ -16,6 +17,7 @@ const HomePage = () => {
       isFake: true,
     })),
   ];
+  const navigate = useNavigate()
   return (
     <div >
       <div className='mx-auto container'>
@@ -43,6 +45,7 @@ const HomePage = () => {
               <div
                 key={item.id || index}
                 className='cursor-pointer border border-[#bfbfbf] hover:border-[#ff6f3c] p-3 rounded-lg text-center max-w-[250px]'
+                onClick={()=>navigate("/service")}
               >
                 <div>
                   <img src={item.image} alt={item.name} className='min-w-[224px] min-h-[217px] max-w-[224px] max-h-[217px]'/>

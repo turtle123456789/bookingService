@@ -11,7 +11,7 @@ const CartProduct = ({ id, image, name, description, price }) => {
       </div>
       <h3 className="text-lg font-bold my-2">{name}</h3>
       <span>
-        <strong>Giá dự tính:</strong> {price}
+        <strong>Giá dự tính:</strong> {Number(price).toLocaleString("vi-VN")}₫
       </span>
       <br />
       <br />

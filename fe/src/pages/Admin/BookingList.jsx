@@ -119,7 +119,7 @@ const filteredData = bookings
                     </button>
                   ) : (
                     <>
-                    {userInfo.role === "shop" ||  item.status === "completed" || item.status === "cancelled" && 
+                    {userInfo.role === "shop" && item.status === "pending" && 
                     (
                       <>
                         <button className="text-green-600 hover:underline" onClick={()=>handleApprove(item.id ,"completed")}>

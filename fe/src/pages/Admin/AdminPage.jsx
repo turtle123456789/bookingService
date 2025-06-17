@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 const fullMenuItems = [
   { name: "Trang chủ", path: "/", roles: ["admin", "shop", "customer", "guest"] }, // thêm guest cho phòng ngừa
-  { name: "Thống kê", path: "report", roles: ["admin", "shop"] },
+  { name: "Thống kê", path: "report", roles: ["admin"] },
   { name: "Đặt lịch", path: "booking", roles: ["admin", "shop", "customer"] },
   { name: "Danh mục", path: "categories", roles: ["admin", "shop"] },
   { name: "Dịch vụ", path: "services", roles: ["admin", "shop"] },

@@ -182,7 +182,7 @@ const HeaderComponent = () => {
                           {category.subCategories?.length > 0 && (
                             <ul className="ml-3 space-y-1">
                               {category.subCategories.map((sub) => (
-                                <li key={sub.id} className="flex items-center space-x-2 hover:bg-slate-300 cursor-pointer p-2 mb-1">
+                                <li key={sub.id} className="flex items-center space-x-2 hover:bg-slate-300 cursor-pointer p-2 mb-1" onClick={()=>navigate("/service")}>
                                   <img
                                     src={sub.subImages}
                                     alt={sub.name}
@@ -278,7 +278,7 @@ const HeaderComponent = () => {
                         {services.map((service) => (
                           <Link
                             key={service}
-                            to="/"
+                            to="/service"
                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-green-100 hover:text-green-900"
                           >
                             {service}
