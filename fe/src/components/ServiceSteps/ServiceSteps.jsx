@@ -58,7 +58,7 @@ const ServiceSteps = () => {
       <div className="bg-[#26b65d] text-white mt-16 py-14 px-6">
         <h3 className="text-2xl font-bold mb-2">Trải nghiệm ngay hôm nay</h3>
         <p className="mb-6">
-          Bạn đã sẵn sàng sử dụng dịch vụ của DVSG chưa? Bắt đầu ngay với việc đặt lịch đầu tiên của bạn
+          Bạn đã sẵn sàng sử dụng dịch vụ của URGENT chưa? Bắt đầu ngay với việc đặt lịch đầu tiên của bạn
         </p>
         <button className="bg-white text-[#26b65d] font-semibold px-6 py-2 rounded-full hover:bg-gray-100 transition">
           Trải nghiệm dịch vụ

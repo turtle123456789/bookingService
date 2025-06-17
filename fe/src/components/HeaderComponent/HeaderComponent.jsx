@@ -79,7 +79,7 @@ const HeaderComponent = () => {
 
           <div className="text-xl font-bold tracking-wide cursor-pointer">
             <Link to="/" className="hover:text-green-400 transition-colors">
-              DVSG
+              URGENT
             </Link>
           </div>
 

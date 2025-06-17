@@ -127,7 +127,7 @@ const confirmAndCreateBooking = (bookingData) => {
         {step === 1 && (
           <>
             <h2 className="text-2xl font-semibold text-center text-orange-500 mb-6">
-              Tất cả các dịch vụ tiện ích của DVSG
+              Tất cả các dịch vụ tiện ích của URGENT
             </h2>
 
             <div className="relative w-full">

@@ -7,7 +7,7 @@ const FooterComponent = () => {
     <footer className="bg-gray-50 text-gray-800 pt-10 border-t">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
         <div>
-          <h3 className="text-xl font-bold text-orange-500 mb-4">DVSG</h3>
+          <h3 className="text-xl font-bold text-orange-500 mb-4">URGENT</h3>
           <div className="flex items-center gap-3 mb-4">
             <img src="/appstore.png" alt="App Store" className="h-8" />
             <img src="/googleplay.png" alt="Google Play" className="h-8" />
@@ -47,7 +47,7 @@ const FooterComponent = () => {
 
       {/* Footer bottom */}
       <div className="border-t mt-8 py-4 text-center text-sm">
-        <p className="mb-2">DVSG TOGETHER. FOLLOW US</p>
+        <p className="mb-2">URGENT TOGETHER. FOLLOW US</p>
         <div className="flex justify-center space-x-4 text-orange-500 text-xl">
           <Link to={"/"}><FaFacebookF /></Link>
           <Link to={"/"}><FaInstagram /></Link>
