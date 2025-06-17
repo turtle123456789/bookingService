@@ -1,4 +1,5 @@
 import {  FaSyncAlt, FaFileAlt, FaHeadset, FaGift, FaRocket } from 'react-icons/fa';
+import { FaTools } from 'react-icons/fa';
 
 const ServiceFeatures = () => {
   const services = [
@@ -23,10 +24,11 @@ const ServiceFeatures = () => {
       description: 'Luôn sẵn sàng giúp bạn mọi lúc',
     },
     {
-      icon: <FaGift className="text-3xl text-orange-500" />,
-      title: 'Dịch Vụ Đa Dạng',
-      description: 'Từ vệ sinh, sửa chữa đến làm đẹp – đủ hết cho Sài Gòn',
-    },
+  icon: <FaTools className="text-3xl text-orange-500" />,
+  title: 'Dịch Vụ Đa Dạng',
+  description: 'Phục vụ khu dân cư và công nghệ cao tại Hòa Lạc – tiện lợi và chuyên nghiệp',
+}
+
   ];
 
   return (
