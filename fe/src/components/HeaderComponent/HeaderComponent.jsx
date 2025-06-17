@@ -147,16 +147,17 @@ const HeaderComponent = () => {
           </div>
         </div>
 
-        <div className="text-white px-6 py-3 hidden sm:flex justify-between items-center">
-          <div
-            className="relative"
-            onMouseEnter={() => setHoverDropdown(true)}
-            onMouseLeave={() => setHoverDropdown(false)}
-          >
-            <div className="inline-flex items-center py-2 font-medium text-white cursor-pointer hover:bg-green-800 select-none">
-              Danh sách dịch vụ
-              <ChevronDownIcon className="ml-2 h-5 w-5 text-white" />
-            </div>
+        <div className="text-white px-6 py-3 hidden sm:flex items-center">
+          <div className="flex-1 flex">
+            <div
+              className="relative"
+              onMouseEnter={() => setHoverDropdown(true)}
+              onMouseLeave={() => setHoverDropdown(false)}
+            >
+              <div className="inline-flex items-center py-2 font-medium text-white cursor-pointer hover:bg-green-800 select-none">
+                Danh sách dịch vụ
+                <ChevronDownIcon className="ml-2 h-5 w-5 text-white" />
+              </div>
 
             <AnimatePresence>
               {hoverDropdown && (
@@ -198,9 +199,10 @@ const HeaderComponent = () => {
                 </motion.div>
               )}
             </AnimatePresence>
+            </div>
           </div>
 
-          <nav className="hidden sm:flex space-x-6 font-semibold text-white">
+          <nav className="flex-1 hidden sm:flex justify-center space-x-6 font-semibold text-white">
             {mainMenu.map((item) => (
               <Link
                 key={item.name}
@@ -212,14 +214,16 @@ const HeaderComponent = () => {
             ))}
           </nav>
 
-          <div className="hidden sm:block">
-            <Link
-              to="/partner"
-              className="text-white font-semibold px-4 py-2 rounded-md transition-colors flex gap-2 items-center"
-            >
-              <FiUserCheck />
-              Trở thành đối tác
-            </Link>
+          <div className="flex-1 hidden sm:flex justify-end">
+            {(!userInfo?.role || (userInfo.role !== 'shop' && userInfo.role !== 'admin')) && (
+              <Link
+                to="/partner"
+                className="text-white font-semibold px-4 py-2 rounded-md transition-colors flex gap-2 items-center"
+              >
+                <FiUserCheck />
+                Trở thành đối tác
+              </Link>
+            )}
           </div>
         </div>
 
@@ -242,12 +246,14 @@ const HeaderComponent = () => {
                 </Link>
               ))}
 
-              <Link
-                to="/partner"
-                className="block text-white font-medium hover:text-green-300"
-              >
-                Trở thành đối tác
-              </Link>
+              {(!userInfo?.role || (userInfo.role !== 'shop' && userInfo.role !== 'admin')) && (
+                <Link
+                  to="/partner"
+                  className="block text-white font-medium hover:text-green-300"
+                >
+                  Trở thành đối tác
+                </Link>
+              )}
 
               <div
                 className="relative"

@@ -14,6 +14,8 @@ const serviceRoutes = require('./routes/service.route');
 const bookingRoutes = require('./routes/booking.route');
 const feedBackRoute =  require('./routes/feedback.route');
 const paymentRoute = require('./routes/payment.route')
+const statisticsRoute = require('./routes/statistics.route');
+
 app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/shops', shopRoutes);
@@ -22,6 +24,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/upload-image', uploadImage);
 app.use('/api/feedback', feedBackRoute);
 app.use('/api/payment', paymentRoute);
+app.use('/api/statistics', statisticsRoute);
 
 app.get('/', (req, res) => {
   res.send('Backend Node.js với Express');
