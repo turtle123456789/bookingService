@@ -108,7 +108,8 @@ const handleImageChange = (e) => {
       dataToSubmit.append("price", formData.price);
       dataToSubmit.append("deposit", formData.deposit);
       dataToSubmit.append("workingHours", JSON.stringify(workingHours));
-      dataToSubmit.append("coupons", JSON.stringify(coupons)); // Gửi coupons dưới dạng JSON
+      const validCoupons = coupons.filter(c => c.code.trim() !== '' && c.discountPercent !== '' && c.discountPercent !== null && c.discountPercent !== undefined);
+      dataToSubmit.append("coupons", JSON.stringify(validCoupons)); // Gửi coupons dưới dạng JSON
   
       onCreate(dataToSubmit);
   
@@ -325,7 +326,6 @@ const handleImageChange = (e) => {
                   min="0"
                   max="100"
                   className="w-[100px] border rounded px-3 py-2"
-                  required
                 />
                 {index > 0 && (
                   <button
